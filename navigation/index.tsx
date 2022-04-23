@@ -19,13 +19,71 @@ import TabTwoScreen from '../screens/TabTwoScreen';
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 
+//File import
+import CreateGroup from '../screens/CreateGroup';
+import AddMembers from '../screens/AddMembers';
+import Login from '../screens/Login';
+import Register from '../screens/Register';
+import Home from '../screens/Home';
+import SplashScreen from '../screens/SplashScreen';
+import UserProfile from '../screens/UserProfile';
+import GroupList from '../screens/GroupList';
+
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
-    <NavigationContainer
-      linking={LinkingConfiguration}
-      theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <RootNavigator />
-    </NavigationContainer>
+    <NavigationContainer>
+        <Stack.Navigator initialRouteName="AddMembers">
+          <Stack.Screen
+            name="CreateGroup"
+            component={CreateGroup}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="AddMembers"
+            component={AddMembers}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Login"
+            component={Login}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="SplashScreen"
+            component={SplashScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Home"
+            component={Home}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="UserProfile"
+            component={UserProfile}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="GroupList"
+            component={GroupList}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Register"
+            component={Register}
+            options={{
+              title: 'Register',
+              headerStyle: {
+                backgroundColor: '#307ecc',
+              },
+              headerTintColor: '#fff',
+              headerTitleStyle: {
+                fontWeight: 'bold',
+              },
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
   );
 }
 
@@ -33,16 +91,68 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
  * A root stack navigator is often used for displaying modals on top of all other content.
  * https://reactnavigation.org/docs/modal
  */
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator();
 
 function RootNavigator() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />
-      <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
-      <Stack.Group screenOptions={{ presentation: 'modal' }}>
-        <Stack.Screen name="Modal" component={ModalScreen} />
-      </Stack.Group>
+    // <Stack.Navigator>
+    //   <Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />
+    //   <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
+    //   <Stack.Group screenOptions={{ presentation: 'modal' }}>
+    //     <Stack.Screen name="Modal" component={ModalScreen} />
+    //   </Stack.Group>
+    // </Stack.Navigator>
+    <Stack.Navigator initialRouteName="AddMembers">
+      <Stack.Screen
+        name="CreateGroup"
+        component={CreateGroup}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="AddMembers"
+        component={AddMembers}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Login"
+        component={Login}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="SplashScreen"
+        component={SplashScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Home"
+        component={Home}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="UserProfile"
+        component={UserProfile}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GroupList"
+        component={GroupList}
+        options={{ headerShown: false }}
+      />
+      {/* <Stack.Screen
+        name="Register"
+        component={Register}
+        options={{
+          title: 'Register',
+          headerStyle: {
+            backgroundColor: '#307ecc',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      /> */}
     </Stack.Navigator>
   );
 }
