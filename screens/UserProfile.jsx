@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Button, Pressable, Image, TextInput } from 'react-native'
 import React from 'react'
-import UserProfile from '../assets/images/UserProfile.svg'
+//import UserProfileImg from '../assets/images/UserProfile.svg'
 import svgImage from '../assets/images/house.svg'
 import Mic from '../assets/images/Mic.svg'
 import Setting from '../assets/images/Setting.svg'
@@ -147,7 +147,7 @@ const UserProfile = (props) => {
           height: 35,
         },
         groupIcon: {
-          flexDirection: 'flex-end',
+          flexDirection:'flex-end',
           marginTop: 10,
           marginRight: 10,
         },
