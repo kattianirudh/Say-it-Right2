@@ -28,6 +28,7 @@ import Home from '../screens/Home';
 import SplashScreen from '../screens/SplashScreen';
 import UserProfile from '../screens/UserProfile';
 import GroupList from '../screens/GroupList';
+import Setting from '../screens/Setting';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
@@ -61,6 +62,11 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
           <Stack.Screen
             name="UserProfile"
             component={UserProfile}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Setting"
+            component={Setting}
             options={{ headerShown: false }}
           />
           <Stack.Screen
