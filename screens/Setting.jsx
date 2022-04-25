@@ -76,7 +76,7 @@ const Setting = (props) => {
         </View>
         <View style={styles.scrollParent}>
         </View>
-        <View style={styles.buttonContainer_fs}>
+        <View style={styles.buttonContainer_fs1}>
           <Pressable style={styles.button1} onPress={() => props.navigation.navigate('Save')}>
             <Text style={styles.buttonText}>Save Changes</Text>
           </Pressable>
@@ -185,6 +185,13 @@ const Setting = (props) => {
           flex: 1,
           justifyContent: 'flex-end',
           marginTop: 130,
+          marginBottom: 10,
+          marginRight:30,
+        },
+        buttonContainer_fs1: {
+          flex: 1,
+          justifyContent: 'flex-end',
+          marginTop: 80,
           marginBottom: 10,
           marginRight:30,
         },
