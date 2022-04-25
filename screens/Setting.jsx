@@ -51,7 +51,7 @@ const Setting = (props) => {
         <View><Text style={styles.header1}>Password</Text>
         </View>
         <View>
-          <TextInput style={styles.search} placeholder="******" />
+          <TextInput style={styles.search} placeholder="Password" />
           <Pressable style={styles.button2} onPress={() => props.navigation.navigate('Edit')}>
           <Text style={styles.buttonText1}>Edit</Text>
           </Pressable>
@@ -140,8 +140,8 @@ const Setting = (props) => {
         },
         header1: {
             marginRight:10,
-            padding:20,
-            height: 10,
+            padding:10,
+            height: 40,
             fontWeight: 'bold',
         },
         header2: {
@@ -170,7 +170,7 @@ const Setting = (props) => {
           borderWidth: 2,
           borderColor: '#000000',
           borderRadius: 3,
-          padding: 10,
+          padding: 5,
           paddingLeft: 35,
           marginTop: 10,
           backgroundColor:'#EFF2F7',
