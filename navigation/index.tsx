@@ -33,7 +33,7 @@ import Setting from '../screens/Setting';
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
     <NavigationContainer>
-        <Stack.Navigator initialRouteName="AddMembers">
+        <Stack.Navigator initialRouteName="CreateGroup">
           <Stack.Screen
             name="CreateGroup"
             component={CreateGroup}
@@ -140,6 +140,11 @@ function RootNavigator() {
         component={UserProfile}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+            name="Setting"
+            component={Setting}
+            options={{ headerShown: false }}
+          />
       <Stack.Screen
         name="GroupList"
         component={GroupList}

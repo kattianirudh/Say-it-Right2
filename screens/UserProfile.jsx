@@ -1,9 +1,10 @@
 import { View, Text, StyleSheet, Button, Pressable, Image, TextInput } from 'react-native'
 import React from 'react'
 //import UserProfileImg from '../assets/images/UserProfile.svg'
-import svgImage from '../assets/images/house.svg'
-import Mic from '../assets/images/Mic.svg'
-import Setting from '../assets/images/Setting.svg'
+//import svgImage from '../assets/images/house.svg'
+//import MIC from '../assets/images/SpeakerIcon'
+import Setting from '../assets/images/Raster.png'
+import leftChevron from '../assets/images/leftChevron.png'
 
 let arr = [
     {
@@ -34,7 +35,8 @@ const UserProfile = (props) => {
       <View style={styles.body}>
         <View style={styles.header}>
         <Pressable onPress={() => props.navigation.navigate('Home')}>
-            <Image style={styles.houseimage} source={svgImage} />  
+        <Image style={styles.backIcon} source={leftChevron} />
+        {/*<Text style={styles.backButtonText}>Back</Text> */} 
         </Pressable>
           <Text style={styles.header}>UserName</Text> 
           
@@ -43,7 +45,7 @@ const UserProfile = (props) => {
           </Pressable>
         </View>
         <View><Text style={styles.header1}>User Description</Text>
-        <Image source={Mic} style={[styles.Micon, styles.Mimage]} />
+        {/*<Image source={MIC} style={[styles.Micon, styles.Mimage]} />*/}
         </View>
         <View style={styles.scrollParent}>
         {/* <ScrollView style={styles.scroll} stickyHeaderIndices={[1]} contentContainerStyle={{ flex: 1 }}> */}
@@ -74,18 +76,18 @@ const UserProfile = (props) => {
     } 
     const styles = StyleSheet.create({
         body: {
-          padding: 50,
+          padding: 30,
           position: 'relative',
-        },
-        houseimage:{
-         width: 50,
-         height: 50,
-         marginRight:50,
+          flex: 1,
+          marginTop: 40,
+          paddingHorizontal:20,
         },
         image: {
           width: 50,
           height: 50,
-          marginLeft:60,
+          //marginLeft:60,
+          marginLeft:5,
+          marginRight:10,
         },
         header: {
           flexDirection: 'row',
@@ -100,22 +102,31 @@ const UserProfile = (props) => {
           display: 'flex',
           flexDirection: 'row',
           justifyContent: 'space-between',
+          //height: 20,
+          height: 40,
+          marginLeft:20,
+          marginBottom: 20,
+          marginTop:10,
         },
         header1: {
-            marginLeft:120,
-            padding:5,
-            height: 70,
+            marginLeft:85,
+            padding:30,
+            height: 90,
         },
-        Mimage: {
-            width: 50,
-            height: 50,
-            marginLeft:150,
-          },
-        Micon: {
-            width: 25,
-            height: 25,
-            marginLeft:150,
-          },
+          backButton: {
+            marginTop: 20,
+            paddingLeft: 20,
+            paddingTop: 20,
+            paddingBottom: 20,
+            display: 'flex',
+        },
+        backIcon: {
+            width: 20,
+            height: 30,
+            marginRight:10,
+            marginLeft:0,
+            marginTop:10,
+        },
         icon: {
           width: 25,
           height: 25,
@@ -147,7 +158,7 @@ const UserProfile = (props) => {
           height: 35,
         },
         groupIcon: {
-          flexDirection:'flex-end',
+          flexDirection:'row-reverse',
           marginTop: 10,
           marginRight: 10,
         },
