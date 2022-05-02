@@ -1,31 +1,72 @@
-import { View, Text, TextInput, StyleSheet, Button, Pressable, Image } from 'react-native'
-import React from 'react'
-
+import { View, Text, TextInput, StyleSheet, Button, Pressable, Image, KeyboardAvoidingView } from 'react-native'
+import React, {useEffect, useState} from 'react'
+import { Picker } from '@react-native-picker/picker';
+// import { auth } from '../firebase'
+import auth from '@react-native-firebase/auth';
 const Login = (props) => {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [profile, setProfile] = useState('User');
+
+  useEffect(() => {
+    auth().onAuthStateChanged(user => {
+      if (user) {
+        props.navigation.navigate('Home')
+      }
+    })
+  }, [])
+
+  const handleLogin = () => {
+    auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        const user = userCredential.user
+        console.log(user.email);
+      })
+      .catch(error => alert(error.message))
+  }
+      
+      
+
   return (
-    <View style={styles.body}>
-        <Text style={styles.logintitle}>Login</Text>
-        <TextInput style={styles.InputPlaceholder}
-          placeholder="Email" />
-        <TextInput style={styles.InputPlaceholder}
-          secureTextEntry={true}
-          placeholder="Password"
-        />
-        <View style={styles.buttonContainer}>
-          <Pressable style={styles.button} onPress={() => props.navigation.navigate('Login')}>
-            <Text style={styles.buttonText}>Login</Text>
-          </Pressable>
-          <Text style={styles.AccountText}>
-            Don't have an account?
-            <Pressable onPress={() => props.navigation.navigate('Register')}>
-              <Text style={[styles.text, styles.BoldAccountText]}> Register</Text>
+    // <KeyboardAvoidingView>
+      <View style={styles.body}>
+          <Text style={styles.logintitle}>Login</Text>
+          <Picker style={styles.PickerPlaceholder}
+            selectedValue={profile}
+            onValueChange={currentProfile => setProfile(currentProfile)}>
+            <Picker.Item label="user" value="User" />
+            <Picker.Item label="admin" value="Admin" />
+          </Picker>
+          <Text>
+          Selected: {profile}
+        </Text>
+          <TextInput style={styles.InputPlaceholder}
+            placeholder="Email"
+            value={email}
+            onChangeText={(text) => setEmail(text)}
+
+          />
+          <TextInput style={styles.InputPlaceholder}
+            secureTextEntry={true}
+            placeholder="Password"
+            value={password}
+            onChangeText={(text) => setPassword(text)}
+          />
+          <View style={styles.buttonContainer}>
+            <Pressable style={styles.button} onPress={handleLogin}>
+              <Text style={styles.buttonText}>Login</Text>
             </Pressable>
-          </Text>
+            <Text style={styles.AccountText}>
+              Don't have an account?
+              <Pressable onPress={() => props.navigation.navigate('Register')}>
+                <Text style={[styles.text, styles.BoldAccountText]}> Register</Text>
+              </Pressable>
+            </Text>
+          </View>
         </View>
-
-
-        
-    </View>
+    // </KeyboardAvoidingView>
+  
   )
 }
 
@@ -33,8 +74,7 @@ const Login = (props) => {
 const styles = StyleSheet.create({
   body: {
     padding: 20,
-    // paddingTop: 150,
-    marginTop: 200,
+    justifyContent: 'center',
     flex: 1,
   },
   logintitle: {
@@ -91,7 +131,15 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingLeft: 10,
   },
-
+  PickerPlaceholder: {
+    borderWidth: 1,
+    backgroundColor: '#cccccc',
+    borderColor: 'transparent',
+    opacity: 0.6,
+    marginTop: 20,
+    borderRadius: 5,
+    paddingLeft: 10,
+  },
   // image: {
   //   width: 200,
   //   height: 200,
