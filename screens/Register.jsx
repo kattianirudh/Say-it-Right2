@@ -1,8 +1,8 @@
 import { View, Text, TextInput, StyleSheet, Button, Pressable, Image } from 'react-native'
 import React, {useState} from 'react';
 import { Picker } from '@react-native-picker/picker';
-// import { auth } from '../firebase.js'
-import auth from '@react-native-firebase/auth';
+import { auth } from '../firebase.js'
+// import auth from '@react-native-firebase/auth';
 
 const Register = (props) => {
   const [profile, setProfile] = useState('User');
@@ -10,48 +10,48 @@ const Register = (props) => {
   const [password, setPassword] = useState('')
   const [repassword, setRepassword] = useState('')
 
-  // const handleRegister = () => {
-  //   if (password === repassword) {
-  //     auth
-  //     .createUserWithEmailAndPassword(email, password, profile)
-  //     .then(userCredential => {
-  //       const user = userCredential.user
-  //       })
-  //       .then(() => {
-  //         props.navigation.navigate('Login')
-  //       })
-  //       .catch(error => {
-  //         console.log(error.message)
-  //       })
-  //   } else {
-  //     alert('Password does not match')
-  //   }
-  // }
-
-const handleRegister = () => {
-  // auth
-  //   .createUserWithEmailAndPassword(email, password)
-  //   .then(userCredential => {
-  //     const user = userCredential.user
-  //     console.log(email);
-  //   })
-  //   .catch(error => alert(error.message))
-  // }
-  auth
-  .createUserWithEmailAndPassword(email, password)
-    .catch(function(error) {
-  // Handle Errors here.
-  var errorCode = error.code;
-  var errorMessage = error.message;
-  if (errorCode == 'auth/weak-password') {
-    alert('The password is too weak.');
-  } else {
-    alert(errorMessage);
+  const handleRegister = () => {
+    if (password === repassword) {
+      auth
+      .createUserWithEmailAndPassword(email, password, profile)
+      .then(userCredential => {
+        const user = userCredential.user
+        })
+        .then(() => {
+          props.navigation.navigate('Login')
+        })
+        .catch(error => {
+          console.log(error.message)
+        })
+    } else {
+      alert('Password does not match')
+    }
   }
-  console.log(error);
-});
 
-}
+// const handleRegister = () => {
+//   auth
+//     .createUserWithEmailAndPassword(email, password)
+//     .then(userCredential => {
+//       const user = userCredential.user
+//       console.log(email);
+//     })
+//     .catch(error => alert(error.message))
+//   }
+//   auth
+//   .createUserWithEmailAndPassword(email, password)
+//     .catch(function(error) {
+//   // Handle Errors here.
+//   var errorCode = error.code;
+//   var errorMessage = error.message;
+//   if (errorCode == 'auth/weak-password') {
+//     alert('The password is too weak.');
+//   } else {
+//     alert(errorMessage);
+//   }
+//   console.log(error);
+// });
+
+
 
   return (
     <View style={styles.body}>
