@@ -1,35 +1,35 @@
 import { View, Text, TextInput, StyleSheet, Button, Pressable, Image, KeyboardAvoidingView } from 'react-native'
 import React, {useEffect, useState} from 'react'
 import { Picker } from '@react-native-picker/picker';
-// import { auth } from '../firebase'
-import auth from '@react-native-firebase/auth';
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+
+
 const Login = (props) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [profile, setProfile] = useState('User');
+  const auth = getAuth();
 
   useEffect(() => {
-    auth().onAuthStateChanged(user => {
-      if (user) {
-        props.navigation.navigate('Home')
-      }
-    })
+    // auth().onAuthStateChanged(user => {
+    //   if (user) {
+    //     props.navigation.navigate('Home')
+    //   }
+    // })
   }, [])
 
   const handleLogin = () => {
-    auth()
-      .signInWithEmailAndPassword(email, password)
-      .then(userCredential => {
-        const user = userCredential.user
-        console.log(user.email);
-      })
-      .catch(error => alert(error.message))
+    signInWithEmailAndPassword(auth, email, password, profile)
+    .then((userCredentials) => {
+      const user = userCredentials.user;
+      props.navigation.navigate('Home')
+    })
+    .catch((error) => {
+      alert(error.message)
+    })
   }
       
-      
-
   return (
-    // <KeyboardAvoidingView>
       <View style={styles.body}>
           <Text style={styles.logintitle}>Login</Text>
           <Picker style={styles.PickerPlaceholder}
