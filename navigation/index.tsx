@@ -33,10 +33,10 @@ import Setting from '../screens/Setting';
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
     <NavigationContainer>
-        <Stack.Navigator initialRouteName="CreateGroup">
+        <Stack.Navigator initialRouteName="Login">
           <Stack.Screen
             name="CreateGroup"
-            component={CreateGroup}
+            component={Login}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -77,16 +77,17 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
           <Stack.Screen
             name="Register"
             component={Register}
-            options={{
-              title: 'Register',
-              headerStyle: {
-                backgroundColor: '#307ecc',
-              },
-              headerTintColor: '#fff',
-              headerTitleStyle: {
-                fontWeight: 'bold',
-              },
-            }}
+            options={{ headerShown: false }}
+            // options={{
+            //   title: 'Register',
+            //   headerStyle: {
+            //     backgroundColor: '#307ecc',
+            //   },
+            //   headerTintColor: '#fff',
+            //   headerTitleStyle: {
+            //     fontWeight: 'bold',
+            //   },
+            // }}
           />
         </Stack.Navigator>
       </NavigationContainer>

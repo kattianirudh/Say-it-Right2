@@ -1,45 +1,91 @@
-import { View, Text, TextInput, StyleSheet, Button, Pressable, Image } from 'react-native'
+import { View, Text, TextInput, StyleSheet, Button, Pressable, Image, AsyncStorage  } from 'react-native'
 import React, {useState} from 'react';
 import { Picker } from '@react-native-picker/picker';
+import app from '../firebase.js'
+import { getAuth, onAuthStateChanged, User, createUserWithEmailAndPassword  } from 'firebase/auth';
+import 'firebase/auth';
+import { initializeApp } from 'firebase/app';
+import { collection, addDoc, getFirestore } from "firebase/firestore"; 
 
+
+
+
+const auth = getAuth();
+const db = getFirestore(app);
 
 const Register = (props) => {
   const [profile, setProfile] = useState('User');
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [repassword, setRepassword] = useState('')
+
+  const handleRegister = async () => {
+    if (password === repassword) {
+      try {
+        const user = await createUserWithEmailAndPassword(auth, email, password, profile);
+        console.log(user);
+        props.navigation.navigate('Home');
+        AsyncStorage.setItem('userToken', user.user.uid);
+        console.log("----->", user.user.uid);
+        try {
+          const docRef = await addDoc(collection(db, "users"), {
+            email,
+            profile,
+          });
+          console.log("Document written with ID: ", docRef.id);
+        } catch (e) {
+          console.error("Error adding document: ", e);
+        }
+      } catch (error) {
+        alert(error.message);
+      }
+    } else {
+      alert('Password does not match')
+    }
+  }
+
+
   return (
     <View style={styles.body}>
         <Text style={styles.logintitle}>Register</Text>
         <TextInput style={styles.InputPlaceholder}
-          placeholder="Email" />
+          placeholder="Email"
+          value={email}
+          onChangeText={(text) => setEmail(text)}
+        />
         <TextInput style={styles.InputPlaceholder}
           secureTextEntry={true}
           placeholder="Password"
+          value={password}
+          onChangeText={(text) => setPassword(text)}
         />
         <TextInput style={styles.InputPlaceholder}
           secureTextEntry={true}
           placeholder="Re-enter Password"
+          value={repassword}
+          onChangeText={(text) => setRepassword(text)}
         />
-        <TextInput style={styles.InputPlaceholder}
+        {/* <TextInput style={styles.InputPlaceholder}
           secureTextEntry={true}
           placeholder="Address"
-        />
+          value={address}
+          onChangeText={(text) => setAddress(text)}
+        /> */}
         <Picker style={styles.PickerPlaceholder}
           selectedValue={profile}
           onValueChange={currentProfile => setProfile(currentProfile)}>
           <Picker.Item label="user" value="User" />
           <Picker.Item label="admin" value="Admin" />
         </Picker>
-        <Text>
-          Selected: {profile}
-        </Text>
         <View style={styles.buttonContainer}>
-          <Pressable style={styles.button} onPress={() => props.navigation.navigate('Login')}>
+          <Pressable style={styles.button} onPress={handleRegister}>
             <Text style={styles.buttonText}>Register</Text>
           </Pressable>
           <Text style={styles.AccountText}>
             Already have an account?
-            <Pressable style={[styles.pressButton]} onPress={() => props.navigation.navigate('Login')}>
-              <Text style={[styles.text, styles.BoldAccountText]}> Logi</Text>
-            </Pressable>
+            <Pressable onPress={() => props.navigation.navigate('Login')}>
+                <Text style={[styles.text, styles.BoldAccountText]}> Login</Text>
+              </Pressable>
           </Text>
         </View>
 
@@ -53,8 +99,7 @@ const Register = (props) => {
 const styles = StyleSheet.create({
   body: {
     padding: 20,
-    // paddingTop: 150,
-    marginTop: 100,
+    justifyContent: 'center',
     flex: 1,
   },
   logintitle: {

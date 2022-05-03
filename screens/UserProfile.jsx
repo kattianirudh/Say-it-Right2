@@ -36,7 +36,6 @@ const UserProfile = (props) => {
         <View style={styles.header}>
         <Pressable onPress={() => props.navigation.navigate('Home')}>
         <Image style={styles.backIcon} source={leftChevron} />
-        {/*<Text style={styles.backButtonText}>Back</Text> */} 
         </Pressable>
           <Text style={styles.header}>UserName</Text> 
           
@@ -45,10 +44,8 @@ const UserProfile = (props) => {
           </Pressable>
         </View>
         <View><Text style={styles.header1}>User Description</Text>
-        {/*<Image source={MIC} style={[styles.Micon, styles.Mimage]} />*/}
         </View>
         <View style={styles.scrollParent}>
-        {/* <ScrollView style={styles.scroll} stickyHeaderIndices={[1]} contentContainerStyle={{ flex: 1 }}> */}
         {
           arr.map((item, index) => {
             return (
@@ -62,7 +59,6 @@ const UserProfile = (props) => {
                     <Text style={styles.groupDescription}>Group Description</Text>
                   </View>
                   <View style={styles.fullWidth}>
-                    {/* <Image style={[styles.icon ,styles.groupIcon]} source={rightChevron} /> */}
                   </View>
                 </View>
               </Pressable>
