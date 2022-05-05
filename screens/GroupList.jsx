@@ -3,6 +3,7 @@ import React from 'react'
 import UserProfile from '../assets/images/UserProfile.png'
 import leftChevron from '../assets/images/leftChevron.png'
 import SpeakerIcon from '../assets/images/SpeakerIcon.png'
+import app from '../firebase';
 
 let arr = [
     {
@@ -98,9 +99,11 @@ const GroupList = (props) => {
                                                 <Text style={styles.admin}>See More</Text>
                                             </View>
                                         </View>
-                                        <View style={styles.fullWidth}>
-                                            <Image style={[styles.icon, styles.groupIcon, styles.speakerIcon]} source={SpeakerIcon} />
-                                        </View>
+                                        <Pressable onPress={() => props.navigation.navigate('Home')}>
+                                            <View style={styles.fullWidth}>
+                                                <Image style={[styles.icon, styles.groupIcon, styles.speakerIcon]} source={SpeakerIcon} />
+                                            </View>
+                                        </Pressable>
                                     </View>
                                 </Pressable>
                             )

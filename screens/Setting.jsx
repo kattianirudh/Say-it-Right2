@@ -2,6 +2,16 @@ import { View, Text, Pressable, Image, StyleSheet, TextInput, ScrollView, FlatLi
 import React from 'react'
 import UserProfile from '../assets/images/UserProfile.png'
 import leftChevron from '../assets/images/leftChevron.png'
+import { Audio } from 'expo-av';
+import { getStorage, ref, uploadBytes } from "firebase/storage";
+import 'firebase/storage';
+import firebase from "firebase/app";
+import 'firebase/storage'; 
+import app from '../firebase';
+
+const storage = getStorage(app);
+const storageRef = ref(storage, 'random/audio.mp3');
+
 let arr = [
     {
       id: 1,
@@ -26,7 +36,53 @@ let arr = [
 ]
 
 
+
 const Setting = (props) => {
+  const [recording, setRecording] = React.useState();
+  var recordingGlobal;
+
+  async function startRecording() {
+    try {
+      console.log('Requesting permissions..');
+      await Audio.requestPermissionsAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      }); 
+      console.log('Starting recording..');
+      const { recording } = await Audio.Recording.createAsync(
+         Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+      );
+      setRecording(recording);
+      recordingGlobal = recording;
+      console.log('Recording started');
+    } catch (err) {
+      console.error('Failed to start recording', err);
+    }
+  }
+
+  async function stopRecording() {
+    console.log('Stopping recording..');
+    setRecording(undefined);
+    await recordingGlobal.stopAndUnloadAsync();
+    const uri = recordingGlobal.getURI(); 
+    console.log('Recording stopped and stored at', uri);
+    uploadBytes(storageRef, recordingGlobal.getURI()).then(() => {
+      console.log('Uploaded');
+    }).catch(err => {
+      console.log('Failed to upload', err);
+    });
+  }
+
+  const recordAudio = async () => {
+    await startRecording();
+    setTimeout(() => {
+      stopRecording();
+    }, 10000);
+
+    
+  }
+
     return (
       <View style={styles.body}>
         <View style={styles.header}>
@@ -70,7 +126,7 @@ const Setting = (props) => {
         <Pressable style={styles.button1} onPress={() => props.navigation.navigate('Play Audio')}>
           <Text style={styles.buttonText}>Play Audio</Text>
           </Pressable>
-          <Pressable style={styles.button3} onPress={() => props.navigation.navigate('Rerecord')}>
+          <Pressable style={styles.button3} onPress={() => recordAudio()}>
           <Text style={styles.buttonText1}>Rerecord</Text>
           </Pressable>
         </View>
