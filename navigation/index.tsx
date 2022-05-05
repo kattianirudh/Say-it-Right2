@@ -33,10 +33,10 @@ import Setting from '../screens/Setting';
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
     <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login">
+        <Stack.Navigator initialRouteName="CreateGroup">
           <Stack.Screen
             name="CreateGroup"
-            component={Login}
+            component={CreateGroup}
             options={{ headerShown: false }}
           />
           <Stack.Screen

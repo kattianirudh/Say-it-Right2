@@ -1,7 +1,19 @@
 import { View, Text, Pressable, Image, StyleSheet, TextInput, ScrollView, FlatList } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import UserProfile from '../assets/images/UserProfile.png'
 import searchIcon from '../assets/images/searchIcon.png'
+import app from '../firebase';
+import { doc, setDoc, collection, getDocs, addDoc, getFirestore } from "firebase/firestore"; 
+import { DocumentPicker, ImagePicker } from 'expo';
+import { getDocumentAsync } from 'expo-document-picker';
+import { getStorage, ref, uploadBytes } from "firebase/storage";
+import { getApp } from "firebase/app";
+
+
+const db = getFirestore(app);
+const firebaseApp = getApp();
+const storage = getStorage(firebaseApp, "gs://sayitright2-b4316.appspot.com/");
+const storageRef = ref(storage, 'schedule');
 
 let arr = [
     {
@@ -40,8 +52,82 @@ let arr = [
         description: 'Random description',
     }
 ]
-
 const CreateGroup = (props) => {
+
+    const [groupName, setGroupName] = useState('');
+    const [groupDescription, setGroupDescription] = useState('');
+    const [groupMembers, setGroupMembers] = useState([]);
+    const [data, setData] = useState([]);
+    const [fileResponse, setFileResponse] = useState([]);
+
+    useEffect( async () => {
+        console.log('useEffect');
+        let arr = [];
+        const querySnapshot = await getDocs(collection(db, "users"), { profile: 'User' });
+        querySnapshot.forEach((doc) => {
+            let obj = doc.data();
+            obj['id'] = doc.id;
+            arr.push(obj);
+        });
+        setData(arr);
+    }, [])
+
+    const handleDocumentSelection = async () => {
+        const file = await getDocumentAsync({
+            copyToCacheDirectory: false
+        });
+        
+        console.log(file);
+        try {
+            // uploadBytes(storageRef, file).then((snapshot) => {
+            //     console.log('Uploaded a blob or file!');
+            // }).error((error) => {
+            //     console.log('Erros is', error);
+            // });
+
+            const upload = uploadBytes(ref, file);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const finishCreateGroup = async () => {
+        await setDoc(db, 'groups', groupName, {
+            name: groupName,
+            description: groupDescription,
+            members: groupMembers,
+        }).then(() => {
+            props.navigation.navigate('Home');
+        });
+    }
+
+    const addmember = (member) => {
+        console.log('addmember', member);
+        let isInGroup = false;
+        let groupMembersTemp = [...groupMembers];
+        if(!groupMembersTemp.includes(member.username)) {
+            groupMembersTemp.push(member.username);
+            setGroupMembers(groupMembersTemp);
+        } else { 
+            groupMembersTemp = groupMembersTemp.filter(m => {
+                if(m != member.username) {
+                    return m;
+                }
+            })
+            setGroupMembers(groupMembersTemp);
+        }
+    }
+
+    const uploadSchedule = async () => {
+        handleDocumentSelection();
+    }
+
+    const uploadImage = async () => {
+        const res = await DocumentPicker.pick({
+            type: [DocumentPicker.types.images],
+        });
+    }
+
     return (
         <View style={styles.body}>
             <View style={styles.header}>
@@ -57,12 +143,12 @@ const CreateGroup = (props) => {
 
             <View style={styles.buttonsParent}>
                 <View style={styles.buttonContainerSc}>
-                    <Pressable style={styles.scheduleButton} onPress={() => props.navigation.navigate('UploadSc')}>
+                    <Pressable style={styles.scheduleButton} onPress={() => uploadSchedule()}>
                         <Text style={styles.buttonText}>Upload Schedule</Text>
                     </Pressable>
                 </View>
                 <View style={styles.buttonContainerIg}>
-                    <Pressable style={styles.uploadButton} onPress={() => props.navigation.navigate('UploadImg')}>
+                    <Pressable style={styles.uploadButton} onPress={() => uploadImage()}>
                         <Text style={[styles.buttonText, styles.whiteText]}>Upload Image</Text>
                     </Pressable>
                 </View>
@@ -73,29 +159,36 @@ const CreateGroup = (props) => {
                 <Image style={[styles.icon, styles.searchIcon]} source={searchIcon} />
             </View>
             <Text style={styles.members}>Add Members</Text>
-            <ScrollView>
-            <View style={styles.scrollParent}>
-                {
-                    arr.map((item, index) => {
-                        return (
-                            <View style={styles.group}>
-                                <View style={styles.groupInfo}>
-                                    <View style={styles.groupNameContainer}>
-                                        <Text style={styles.groupNameText}>Member Name</Text>
+            <ScrollView style={styles.scrollParent}>
+                <View style={styles.scrollParent}>
+                    {
+                        data.map((item, index) => {
+                            return (
+                                <View style={styles.group}>
+                                    <View style={styles.groupInfo}>
+                                        <View style={styles.groupNameContainer}>
+                                            <Text style={styles.groupNameText}>{item.username}</Text>
+                                        </View>
+                                    </View>
+                                    <View style={styles.fullWidth}>
+                                        <View style={styles.buttonContainer}>
+                                            <Pressable style={styles.addButton} onPress={() => addmember(item)}>
+                                                {/* <Text style={styles.buttonText}>Add</Text> */}
+                                                {/* If user is not inside groupMembers then print */}
+                                                {
+                                                    groupMembers.includes(item.username) ?
+                                                        <Text style={styles.buttonText}>Added</Text>
+                                                        :
+                                                        <Text style={styles.buttonText}>Add</Text>
+                                                }
+                                            </Pressable>
+                                        </View>
                                     </View>
                                 </View>
-                                <View style={styles.fullWidth}>
-                                    <View style={styles.buttonContainer}>
-                                        <Pressable style={styles.addButton} onPress={() => props.navigation.navigate('Add')}>
-                                            <Text style={styles.buttonText}>Add</Text>
-                                        </Pressable>
-                                    </View>
-                                </View>
-                            </View>
-                        )
-                    })
-                }
-            </View>
+                            )
+                        })
+                    }
+                </View>
             </ScrollView>
             <View style={styles.buttonContainer_fs}>
                 <Pressable style={styles.button1} onPress={() => props.navigation.navigate('Save')}>
@@ -246,7 +339,7 @@ const styles = StyleSheet.create({
     },
     scrollParent: {
         // flex: 1,
-        height: '50%',
+        height: '100%',
     }, buttonsParent: {
         marginTop: 10,
         display: 'flex',

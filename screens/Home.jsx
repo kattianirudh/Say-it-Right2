@@ -1,14 +1,20 @@
 import { View, Text, Pressable, Image, StyleSheet, TextInput, ScrollView, FlatList } from 'react-native'
-import React from 'react'
+import React, {useState, useEffect} from 'react'
 import UserProfile from '../assets/images/UserProfile.png'
 import searchIcon from '../assets/images/searchIcon.png'
 import rightChevron from '../assets/images/rightChevron.png'
+import { collection, getDocs, getFirestore } from "firebase/firestore"; 
+import app from '../firebase';
+
+
+const db = getFirestore(app);
 
 let arr = [
     {
         id: 1,
         name: 'Random',
         description: 'Random description',
+        isAdmin: true,
     }, {
         id: 1,
         name: 'Random',
@@ -65,6 +71,22 @@ let arr = [
 ]
 
 const Home = (props) => {
+    const [data, setData] = useState([]);
+
+    useEffect(async () => {
+        let arr = [];
+        const querySnapshot = await getDocs(collection(db, "groupList"));
+        console.log("--->",querySnapshot.docs);
+        querySnapshot.forEach((doc) => {
+            let obj = doc.data();
+            obj['id'] = doc.id;
+            console.log("--->",doc.id);
+            arr.push(obj);
+        });
+        console.log("--->",arr);
+        setData(arr);
+    }, []);
+
     return (
         <View style={styles.body}>
             <View style={styles.header}>
@@ -76,22 +98,24 @@ const Home = (props) => {
             <View>
                 <TextInput style={styles.search} placeholder="Search Public Groups" />
                 <Image style={[styles.icon ,styles.searchIcon]} source={searchIcon} />
-                
             </View>
             <ScrollView>
                 <View style={styles.scrollParent}>
                     {
-                        arr.map((item, index) => {
+                        data.map((item, index) => {
                             return (
-                                <Pressable onPress={() => props.navigation.navigate('GroupList')} key={index} >
+                                <Pressable onPress={() => props.navigation.navigate('GroupList')} key={item.id} >
                                     <View style={styles.group} key={index}>
                                         <Image style={[styles.icon, styles.groupImage]} source={UserProfile} />
                                         <View style={styles.groupInfo}>
                                             <View style={styles.groupNameContainer}>
-                                                <Text style={styles.groupNameText}>Group Name</Text>
-                                                <Text style={styles.admin}>Admin</Text>
+                                                <Text style={styles.groupNameText}>{item.name}</Text>
+                                                {
+                                                    item.isAdmin ? <Text style={styles.admin}>Admin</Text> : null
+                                                }
+                                                
                                             </View>
-                                            <Text style={styles.groupDescription}>Group Description</Text>
+                                            <Text style={styles.groupDescription}>{item.description}</Text>
                                         </View>
                                         <View style={styles.fullWidth}>
                                             <Image style={[styles.icon ,styles.groupIcon]} source={rightChevron} />
@@ -104,7 +128,7 @@ const Home = (props) => {
                 </View>
             </ScrollView>
             <View style={styles.floatingButtonContainer}>
-                <Pressable style={styles.floatingButton} onPress={() => this.props.navigation.navigate('Group')}>
+                <Pressable style={styles.floatingButton} onPress={() => props.navigation.navigate('CreateGroup')}>
                     <Text style={styles.plusButton}>+</Text>
                     <Text style={styles.floatingButtonText}>Create a Group</Text>
                 </Pressable>
@@ -206,12 +230,7 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
     }, scrollParent: {
-        // flex: 1,
-        // height: '50%',
     }, floatingButtonContainer: {
-        // position: 'absolute',
-        // bottom: 20,
-        // right: 20,
         marginTop: 20,
         justifyContent: 'flex-end',
         display: 'flex',
