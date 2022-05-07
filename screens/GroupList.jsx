@@ -1,9 +1,16 @@
 import { View, Text, StyleSheet, Button, Pressable, Image, TextInput, ScrollView } from 'react-native'
-import React from 'react'
+import React, {useRef} from 'react'
 import UserProfile from '../assets/images/UserProfile.png'
 import leftChevron from '../assets/images/leftChevron.png'
 import SpeakerIcon from '../assets/images/SpeakerIcon.png'
 import app from '../firebase';
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { Audio } from 'expo-av';
+
+
+
+const storage = getStorage();
+const pathReference = ref(storage, 'record.m4a');
 
 let arr = [
     {
@@ -66,6 +73,33 @@ let arr = [
 ]
 
 const GroupList = (props) => {
+    const AudioPlayer = useRef(new Audio.Sound());
+
+    async function playSound(URI) {
+        try {
+            await AudioPlayer.current.loadAsync({ uri: URI }, {}, true);
+
+            const playerStatus = await AudioPlayer.current.getStatusAsync();
+
+            if (playerStatus.isLoaded) {
+                if (playerStatus.isPlaying === false) {
+                    AudioPlayer.current.playAsync();
+                    SetIsPLaying(true);
+                }
+            }
+        } catch (error) { console.log(error); }
+    }
+
+    const playAudio = () => {
+        const gsReference = ref(storage, 'record.m4a');
+        getDownloadURL(gsReference).then(url => {
+            playSound(url);
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+
+
     return (
         <View style={styles.body}>
             <View style={styles.backButton}>
@@ -99,7 +133,7 @@ const GroupList = (props) => {
                                                 <Text style={styles.admin}>See More</Text>
                                             </View>
                                         </View>
-                                        <Pressable onPress={() => props.navigation.navigate('Home')}>
+                                        <Pressable onPress={() => playAudio()}>
                                             <View style={styles.fullWidth}>
                                                 <Image style={[styles.icon, styles.groupIcon, styles.speakerIcon]} source={SpeakerIcon} />
                                             </View>
@@ -148,7 +182,7 @@ const styles = StyleSheet.create({
         marginLeft: 5,
         marginBottom: 5,
     },
-    header:{
+    header: {
         fontSize: 25,
         color: '#000000',
         fontWeight: 'bold',
@@ -157,7 +191,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginBottom: 20,
     },
-    subtitle:{
+    subtitle: {
         fontSize: 12,
         color: '#47525E',
         display: 'flex',
@@ -167,13 +201,13 @@ const styles = StyleSheet.create({
         width: '100%',
         borderRadius: 5,
         marginRight: 25,
-        height: 32  ,
+        height: 32,
         alignSelf: 'center',
         justifyContent: 'center',
         alignItems: 'center',
         display: 'flex',
     },
-    headerText:{
+    headerText: {
         marginLeft: 20,
     }, buttonText: {
         color: '#47525E',
@@ -195,20 +229,20 @@ const styles = StyleSheet.create({
     }, groupName: {
         fontSize: 20,
         fontWeight: 'bold',
-    }, 
-      groupInfo: {
+    },
+    groupInfo: {
         display: 'flex',
         flexDirection: 'column',
         marginLeft: 10,
     }, groupNameText: {
         fontSize: 20,
     },
-      groupImage: {
+    groupImage: {
         marginTop: 10,
         width: 35,
         height: 35,
     },
-      groupIcon: {
+    groupIcon: {
         marginTop: 10,
         marginRight: 10,
         display: 'flex',
@@ -260,7 +294,7 @@ const styles = StyleSheet.create({
         height: 25,
         backgroundColor: 'white',
     },
-    plusButton : {
+    plusButton: {
         fontSize: 15,
         color: '#FFFFFF',
         marginRight: 5,

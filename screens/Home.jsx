@@ -76,14 +76,11 @@ const Home = (props) => {
     useEffect(async () => {
         let arr = [];
         const querySnapshot = await getDocs(collection(db, "groupList"));
-        console.log("--->",querySnapshot.docs);
         querySnapshot.forEach((doc) => {
             let obj = doc.data();
             obj['id'] = doc.id;
-            console.log("--->",doc.id);
             arr.push(obj);
         });
-        console.log("--->",arr);
         setData(arr);
     }, []);
 
