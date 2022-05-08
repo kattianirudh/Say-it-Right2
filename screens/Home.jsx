@@ -72,6 +72,7 @@ let arr = [
 
 const Home = (props) => {
     const [data, setData] = useState([]);
+    const [filteredData, setFilteredData] = useState([]);
 
     useEffect(async () => {
         let arr = [];
@@ -82,7 +83,16 @@ const Home = (props) => {
             arr.push(obj);
         });
         setData(arr);
+        setFilteredData(arr);
     }, []);
+
+    const searchFilter = (text) => {
+        let arr = data;
+        let filtered = arr.filter(item => {
+            return item.name.toLowerCase().includes(text.toLowerCase());
+        });
+        setFilteredData(filtered);
+    }
 
     return (
         <View style={styles.body}>
@@ -93,15 +103,15 @@ const Home = (props) => {
                 </Pressable>
             </View>
             <View>
-                <TextInput style={styles.search} placeholder="Search Public Groups" />
+                <TextInput style={styles.search} placeholder="Search Public Groups" onChangeText={text => searchFilter(text)} />
                 <Image style={[styles.icon ,styles.searchIcon]} source={searchIcon} />
             </View>
             <ScrollView>
                 <View style={styles.scrollParent}>
                     {
-                        data.map((item, index) => {
+                        filteredData.map((item, index) => {
                             return (
-                                <Pressable onPress={() => props.navigation.navigate('GroupList')} key={item.id} >
+                                <Pressable onPress={() => props.navigation.navigate('GroupList', {item: item})} key={item.id} >
                                     <View style={styles.group} key={index}>
                                         <Image style={[styles.icon, styles.groupImage]} source={UserProfile} />
                                         <View style={styles.groupInfo}>

@@ -1,8 +1,9 @@
 import { View, Text, StyleSheet, Button, Pressable, Image, TextInput, ScrollView } from 'react-native'
-import React, {useRef} from 'react'
+import React, {useRef, useState, useEffect} from 'react'
 import UserProfile from '../assets/images/UserProfile.png'
 import leftChevron from '../assets/images/leftChevron.png'
 import SpeakerIcon from '../assets/images/SpeakerIcon.png'
+import { collection, getDocs, getFirestore } from "firebase/firestore"; 
 import app from '../firebase';
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { Audio } from 'expo-av';
@@ -10,6 +11,7 @@ import { Audio } from 'expo-av';
 
 
 const storage = getStorage();
+const db = getFirestore(app);
 const pathReference = ref(storage, 'record.m4a');
 
 let arr = [
@@ -73,14 +75,32 @@ let arr = [
 ]
 
 const GroupList = (props) => {
+
+    const [members, setMembers] = useState([]);
+
+    useEffect(() => {
+        getMembers();
+    }, [])
+
     const AudioPlayer = useRef(new Audio.Sound());
+
+    const getMembers = async () => {
+        let arr = [];
+        const members = await getDocs(collection(db, "users"));
+        members.forEach(member => {
+            let obj = member.data();
+            obj['id'] = member.id;
+            if(obj.groups.includes(props.route.params.item.name)) {
+                arr.push(member.data());
+            }
+        });
+        setMembers(arr);
+    }
 
     async function playSound(URI) {
         try {
             await AudioPlayer.current.loadAsync({ uri: URI }, {}, true);
-
             const playerStatus = await AudioPlayer.current.getStatusAsync();
-
             if (playerStatus.isLoaded) {
                 if (playerStatus.isPlaying === false) {
                     AudioPlayer.current.playAsync();
@@ -103,15 +123,15 @@ const GroupList = (props) => {
     return (
         <View style={styles.body}>
             <View style={styles.backButton}>
-                <Pressable style={styles.homeButton} onPress={() => this.props.navigation.navigate('Home')}>
+                <Pressable style={styles.homeButton} onPress={() => props.navigation.navigate('Home')}>
                     <Image style={styles.backIcon} source={leftChevron} />
                     <Text style={styles.backButtonText}>Back</Text>
                 </Pressable>
             </View>
             <View style={styles.header}>
                 <View style={styles.headerText}>
-                    <Text style={styles.header}>Group Name</Text>
-                    <Text style={styles.subtitle}>Groups Description</Text>
+                    <Text style={styles.header}>{props.route.params.item.name}</Text>
+                    <Text style={styles.subtitle}>{props.route.params.item.description}</Text>
                 </View>
                 <Pressable>
                     <View style={styles.buttonContainer}>
@@ -122,9 +142,9 @@ const GroupList = (props) => {
             <ScrollView style={styles.scrollView}>
                 <View style={styles.scrollParent}>
                     {
-                        arr.map((item, index) => {
+                        members.map((item, index) => {
                             return (
-                                <Pressable onPress={() => props.navigation.navigate('Home')} key={index} >
+                                <Pressable onPress={() => props.navigation.navigate('Setting')} key={index} >
                                     <View style={styles.group} key={index}>
                                         <Image style={[styles.icon, styles.groupImage]} source={UserProfile} />
                                         <View style={styles.groupInfo}>
@@ -146,7 +166,7 @@ const GroupList = (props) => {
                 </View>
             </ScrollView>
             <View style={styles.floatingButtonContainer}>
-                <Pressable style={styles.floatingButton} onPress={() => props.navigation.navigate('AddMembers')}>
+                <Pressable style={styles.floatingButton} onPress={() => props.navigation.navigate('AddMembers', {item: props.route.params.item})}>
                     <Text style={styles.plusButton}>+</Text>
                     <Text style={styles.floatingButtonText}>Add Members</Text>
                 </Pressable>

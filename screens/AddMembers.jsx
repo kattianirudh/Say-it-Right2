@@ -1,8 +1,12 @@
 import { View, Text, Pressable, Image, StyleSheet, TextInput, ScrollView, FlatList } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import UserProfile from '../assets/images/UserProfile.png'
 import searchIcon from '../assets/images/searchIcon.png'
 import leftChevron from '../assets/images/leftChevron.png'
+import { collection, getDocs, getFirestore, updateDoc, doc } from "firebase/firestore";
+import app from '../firebase';
+
+const db = getFirestore(app);
 
 
 let arr = [
@@ -66,6 +70,34 @@ let arr = [
 ]
 
 const AddMembers = (props) => {
+
+  const addButton = async (val) => {
+    console.log('val: ', val)
+    const docRef = doc(db, "users", val.id);
+    await updateDoc(docRef, {
+      groups: [...val.groups, props.route.params.item.name]
+    })
+    getData();
+  }
+
+  const getData = async () => {
+    let arr = [];
+    const querySnapshot = await getDocs(collection(db, "users"));
+    querySnapshot.forEach((doc) => {
+      let obj = doc.data();
+      obj['id'] = doc.id;
+      if(obj.profile == 'User' && (!obj.groups.includes(props.route.params.item.name)))
+        arr.push(obj);
+    });
+    console.log(arr);
+    setData(arr);
+  }
+
+  const [data, setData] = useState([]);
+  useEffect(async () => {
+    getData();
+  }, [])
+
   return (
     <View style={styles.body}>
       <View style={styles.backButton}>
@@ -87,18 +119,18 @@ const AddMembers = (props) => {
       <ScrollView>
         <View style={styles.scrollParent}>
           {
-            arr.map((item, index) => {
+            data.map((item, index) => {
               return (
                 <View style={styles.group}>
                   <View style={styles.groupInfo}>
                     <View style={styles.groupNameContainer}>
-                      <Text style={styles.groupNameText}>Member Name</Text>
+                      <Text style={styles.groupNameText}>{item.username}</Text>
                     </View>
                   </View>
                   <View style={styles.fullWidth}>
                     <View style={styles.buttonContainer}>
-                      <Pressable style={styles.button} onPress={() => props.navigation.navigate('Add')}>
-                        <Text style={styles.buttonText}>Add/Invite</Text>
+                      <Pressable style={styles.button} onPress={() => addButton(item)}>
+                        <Text style={styles.buttonText}>Add</Text>
                       </Pressable>
                     </View>
                   </View>
@@ -238,7 +270,7 @@ const styles = StyleSheet.create({
   },
   scrollParent: {
     height: '50%',
-    marginTop: 10,
+    marginTop: 20,
   },
   buttonTextFinish: {
     color: '#ffffff',
