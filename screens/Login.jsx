@@ -2,6 +2,7 @@ import { View, Text, TextInput, StyleSheet, Button, Pressable, Image, KeyboardAv
 import React, {useEffect, useState} from 'react'
 import { Picker } from '@react-native-picker/picker';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { AsyncStorage } from 'react-native';
 
 
 const Login = (props) => {
@@ -22,6 +23,8 @@ const Login = (props) => {
     signInWithEmailAndPassword(auth, email, password, profile)
     .then((userCredentials) => {
       const user = userCredentials.user;
+      // Save the credentials in async storage
+      AsyncStorage.setItem('user', JSON.stringify(user));
       props.navigation.navigate('Home')
     })
     .catch((error) => {

@@ -11,9 +11,7 @@ import { getApp } from "firebase/app";
 
 
 const db = getFirestore(app);
-const firebaseApp = getApp();
-const storage = getStorage(firebaseApp, "gs://sayitright2-b4316.appspot.com/");
-const storageRef = ref(storage, 'schedule');
+const storage = getStorage(app);  
 
 let arr = [
     {
@@ -59,9 +57,10 @@ const CreateGroup = (props) => {
     const [groupMembers, setGroupMembers] = useState([]);
     const [data, setData] = useState([]);
     const [fileResponse, setFileResponse] = useState([]);
+    const [schedule, setSchedule] = useState('');
+    const [image, setImage] = useState('');
 
     useEffect( async () => {
-        console.log('useEffect');
         let arr = [];
         const querySnapshot = await getDocs(collection(db, "users"), { profile: 'User' });
         querySnapshot.forEach((doc) => {
@@ -76,16 +75,19 @@ const CreateGroup = (props) => {
         const file = await getDocumentAsync({
             copyToCacheDirectory: false
         });
-        
+
+        console.log('file',file);
+        const fileClip = await fetch(file.uri);
+        const fileBytes = await fileClip.blob();
+        let storageRef = ref(storage, file.name);
         console.log(file);
         try {
-            // uploadBytes(storageRef, file).then((snapshot) => {
-            //     console.log('Uploaded a blob or file!');
-            // }).error((error) => {
-            //     console.log('Erros is', error);
-            // });
-
-            const upload = uploadBytes(ref, file);
+            uploadBytes(storageRef, fileBytes).then(() => {
+                console.log('Uploaded');
+                setSchedule(file.name);
+              }).catch(err => {
+                console.log('Failed to upload', err);
+            });
         } catch (error) {
             console.log(error);
         }
@@ -102,15 +104,14 @@ const CreateGroup = (props) => {
     }
 
     const addmember = (member) => {
-        console.log('addmember', member);
         let isInGroup = false;
         let groupMembersTemp = [...groupMembers];
-        if(!groupMembersTemp.includes(member.username)) {
-            groupMembersTemp.push(member.username);
+        if(!groupMembersTemp.includes(member.email)) {
+            groupMembersTemp.push(member.email);
             setGroupMembers(groupMembersTemp);
         } else { 
             groupMembersTemp = groupMembersTemp.filter(m => {
-                if(m != member.username) {
+                if(m != member.email) {
                     return m;
                 }
             })
@@ -123,8 +124,36 @@ const CreateGroup = (props) => {
     }
 
     const uploadImage = async () => {
-        const res = await DocumentPicker.pick({
-            type: [DocumentPicker.types.images],
+        const file = await getDocumentAsync({
+            copyToCacheDirectory: false,
+            type: ['image/png', 'image/jpg', 'image/jpeg']
+        });
+
+        const fileClip = await fetch(file.uri);
+        const fileBytes = await fileClip.blob();
+        let storageRef = ref(storage, file.name);
+        console.log(file);
+        try {
+            uploadBytes(storageRef, fileBytes).then(() => {
+                console.log('Uploaded');
+                setImage(file.name);
+              }).catch(err => {
+                console.log('Failed to upload', err);
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const submitDetails = async () => {
+        await setDoc(doc(db, 'groupList ', groupName), {
+            name: groupName,
+            description: groupDescription,
+            members: groupMembers,
+            schedule: schedule,
+            image: image,
+        }).then(() => {
+            props.navigation.navigate('Home');
         });
     }
 
@@ -137,9 +166,9 @@ const CreateGroup = (props) => {
                 </Pressable>
             </View>
             <View>
-                <TextInput style={styles.search} placeholder="Enter Group Name" />
+                <TextInput style={styles.search} placeholder="Enter Group Name" onChangeText={t => setGroupName(t)} />
             </View>
-            <View><TextInput style={styles.desc} placeholder="Group Description" /></View>
+            <View><TextInput style={styles.desc} placeholder="Group Description" onChangeText={t => setGroupDescription(t)} /></View>
 
             <View style={styles.buttonsParent}>
                 <View style={styles.buttonContainerSc}>
@@ -176,7 +205,7 @@ const CreateGroup = (props) => {
                                                 {/* <Text style={styles.buttonText}>Add</Text> */}
                                                 {/* If user is not inside groupMembers then print */}
                                                 {
-                                                    groupMembers.includes(item.username) ?
+                                                    groupMembers.includes(item.email) ?
                                                         <Text style={styles.buttonText}>Added</Text>
                                                         :
                                                         <Text style={styles.buttonText}>Add</Text>
@@ -191,7 +220,7 @@ const CreateGroup = (props) => {
                 </View>
             </ScrollView>
             <View style={styles.buttonContainer_fs}>
-                <Pressable style={styles.button1} onPress={() => props.navigation.navigate('Save')}>
+                <Pressable style={styles.button1} onPress={() => submitDetails()}>
                     <Text style={styles.buttonText}>Finish</Text>
                 </Pressable>
             </View>

@@ -1,17 +1,19 @@
 import { View, Text, Pressable, Image, StyleSheet, TextInput, ScrollView, FlatList } from 'react-native'
-import React, { useRef } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import UserProfile from '../assets/images/UserProfile.png'
-import leftChevron from '../assets/images/leftChevron.png'
+import leftChevron from '../assets/images/leftChevron-white.png'
 import { Audio } from 'expo-av';
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 import 'firebase/storage';
 import firebase from "firebase/app";
 import 'firebase/storage';
 import app from '../firebase';
+import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { AsyncStorage } from 'react-native';
 
 const storage = getStorage(app);
-// const storageRef = ref(storage, 'random/audio.mp3');
 const storageRef = ref(storage, 'record.m4a');
+const db = getFirestore(app);
 
 
 let arr = [
@@ -38,8 +40,8 @@ let arr = [
 ]
 
 
-
 const Setting = (props) => {
+  
   const AudioRecorder = useRef(new Audio.Recording());
   const AudioPlayer = useRef(new Audio.Sound());
   const [recording, setRecording] = React.useState();
@@ -49,7 +51,7 @@ const Setting = (props) => {
     try {
       await AudioPlayer.current.loadAsync({ uri: URI }, {}, true);
 
-      const playerStatus = await AudioPlayer.current.getStatusAsync();
+      const playerStatus = await AudioPlayer.current.getStatusAsync();  
 
       if (playerStatus.isLoaded) {
         if (playerStatus.isPlaying === false) {
@@ -116,7 +118,7 @@ const Setting = (props) => {
           <Image style={styles.image} source={UserProfile} />
         </Pressable>
       </View>
-      <View><Text style={styles.header1}>UserName</Text>
+      <View><Text style={styles.header1}>UserNameee</Text>
       </View>
       <View>
         <TextInput style={styles.search} placeholder="UserName" />
