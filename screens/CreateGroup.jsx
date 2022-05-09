@@ -146,7 +146,7 @@ const CreateGroup = (props) => {
     }
 
     const submitDetails = async () => {
-        await setDoc(doc(db, 'groupList ', groupName), {
+        await setDoc(doc(db, 'groupList', groupName), {
             name: groupName,
             description: groupDescription,
             members: groupMembers,

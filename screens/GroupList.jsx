@@ -1,96 +1,50 @@
 import { View, Text, StyleSheet, Button, Pressable, Image, TextInput, ScrollView } from 'react-native'
-import React, {useRef, useState, useEffect} from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import UserProfile from '../assets/images/UserProfile.png'
 import leftChevron from '../assets/images/leftChevron.png'
 import SpeakerIcon from '../assets/images/SpeakerIcon.png'
-import { collection, getDocs, getFirestore } from "firebase/firestore"; 
+import { collection, getDocs, getFirestore } from "firebase/firestore";
 import app from '../firebase';
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { Audio } from 'expo-av';
+import { AsyncStorage } from 'react-native';
+
 
 
 
 const storage = getStorage();
 const db = getFirestore(app);
-const pathReference = ref(storage, 'record.m4a');
-
-let arr = [
-    {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }
-]
 
 const GroupList = (props) => {
+    const pathReference = ref(storage, 'record.m4a');
 
     const [members, setMembers] = useState([]);
+    const [user, setUser] = useState([]);
+    const AudioPlayer = useRef(new Audio.Sound());
+    const [sound, setSound] = React.useState();
 
     useEffect(() => {
         getMembers();
     }, [])
 
-    const AudioPlayer = useRef(new Audio.Sound());
+    React.useEffect(() => {
+        return sound
+            ? () => {
+                console.log('Unloading Sound');
+                sound.unloadAsync();
+            }
+            : undefined;
+    }, [sound]);
+
 
     const getMembers = async () => {
         let arr = [];
         const members = await getDocs(collection(db, "users"));
         members.forEach(member => {
             let obj = member.data();
+            console.log('users', obj, props.route.params.item.name);
             obj['id'] = member.id;
-            if(obj.groups.includes(props.route.params.item.name)) {
+            if (!obj.groups.includes(props.route.params.item.name)) {
                 arr.push(member.data());
             }
         });
@@ -99,26 +53,32 @@ const GroupList = (props) => {
 
     async function playSound(URI) {
         try {
-            await AudioPlayer.current.loadAsync({ uri: URI }, {}, true);
-            const playerStatus = await AudioPlayer.current.getStatusAsync();
-            if (playerStatus.isLoaded) {
-                if (playerStatus.isPlaying === false) {
-                    AudioPlayer.current.playAsync();
-                    SetIsPLaying(true);
-                }
-            }
+            const { sound } = await Audio.Sound.createAsync(
+                { uri: URI }
+            );
+            setSound(sound);
+            await sound.playAsync();
         } catch (error) { console.log(error); }
     }
 
-    const playAudio = () => {
-        const gsReference = ref(storage, 'record.m4a');
-        getDownloadURL(gsReference).then(url => {
-            playSound(url);
-        }).catch(error => {
-            console.log(error);
+    const playAudio = (item) => {
+        console.log('item: ', item);
+
+        var userDetails;
+        AsyncStorage.getItem('user').then(user => {
+            userDetails = JSON.parse(user);
+            console.log('userDetails', userDetails);
+            const gsReference = ref(storage, `${item.email}.m4a`);
+            getDownloadURL(gsReference).then(url => {
+                playSound(url);
+            }).catch(error => {
+                console.log(error);
+            });
+            setUser(JSON.parse(user));
+        }).catch(err => {
+            console.log(err);
         });
     }
-
 
     return (
         <View style={styles.body}>
@@ -149,11 +109,11 @@ const GroupList = (props) => {
                                         <Image style={[styles.icon, styles.groupImage]} source={UserProfile} />
                                         <View style={styles.groupInfo}>
                                             <View style={styles.groupNameContainer}>
-                                                <Text style={styles.groupNameText}>Member Name</Text>
+                                                <Text style={styles.groupNameText}>{item.username}</Text>
                                                 <Text style={styles.admin}>See More</Text>
                                             </View>
                                         </View>
-                                        <Pressable onPress={() => playAudio()}>
+                                        <Pressable onPress={() => playAudio(item)}>
                                             <View style={styles.fullWidth}>
                                                 <Image style={[styles.icon, styles.groupIcon, styles.speakerIcon]} source={SpeakerIcon} />
                                             </View>
@@ -166,7 +126,7 @@ const GroupList = (props) => {
                 </View>
             </ScrollView>
             <View style={styles.floatingButtonContainer}>
-                <Pressable style={styles.floatingButton} onPress={() => props.navigation.navigate('AddMembers', {item: props.route.params.item})}>
+                <Pressable style={styles.floatingButton} onPress={() => props.navigation.navigate('AddMembers', { item: props.route.params.item })}>
                     <Text style={styles.plusButton}>+</Text>
                     <Text style={styles.floatingButtonText}>Add Members</Text>
                 </Pressable>

@@ -1,6 +1,6 @@
-import { View, Text, Pressable, Image, StyleSheet, TextInput, ScrollView, FlatList } from 'react-native'
+import { View, Text, Pressable, Image, StyleSheet, TextInput, ScrollView, FlatList, SafeAreaView, Button } from 'react-native'
 import React, { useRef, useEffect, useState } from 'react'
-import UserProfile from '../assets/images/UserProfile.png'
+import UserProfile from '../assets/images/UserImage.png'
 import leftChevron from '../assets/images/leftChevron-white.png'
 import { Audio } from 'expo-av';
 import { getStorage, ref, uploadBytes } from "firebase/storage";
@@ -8,50 +8,42 @@ import 'firebase/storage';
 import firebase from "firebase/app";
 import 'firebase/storage';
 import app from '../firebase';
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore, updateDoc, doc } from "firebase/firestore";
 import { AsyncStorage } from 'react-native';
+import { getAuth, updatePassword } from "firebase/auth";
+
 
 const storage = getStorage(app);
-const storageRef = ref(storage, 'record.m4a');
+// const storageRef = ref(storage, 'record.m4a');
 const db = getFirestore(app);
 
 
-let arr = [
-  {
-    id: 1,
-    name: 'Random',
-    description: 'Random description',
-  },
-  {
-    id: 1,
-    name: 'Random',
-    description: 'Random description',
-  },
-  {
-    id: 1,
-    name: 'Random',
-    description: 'Random description',
-  },
-  {
-    id: 1,
-    name: 'Random',
-    description: 'Random description',
-  }
-]
-
-
 const Setting = (props) => {
-  
+
   const AudioRecorder = useRef(new Audio.Recording());
   const AudioPlayer = useRef(new Audio.Sound());
   const [recording, setRecording] = React.useState();
   var recordingGlobal;
+  
+  const auth = getAuth();
+
+
+  const [uid, setUid] = useState('');
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [description, setDescription] = useState('');
+  const [address, setAddress] = useState('');
+
+  useEffect(() => {
+    fillInitialData();
+  }, []);
 
   async function playSound(URI) {
     try {
       await AudioPlayer.current.loadAsync({ uri: URI }, {}, true);
 
-      const playerStatus = await AudioPlayer.current.getStatusAsync();  
+      const playerStatus = await AudioPlayer.current.getStatusAsync();
 
       if (playerStatus.isLoaded) {
         if (playerStatus.isPlaying === false) {
@@ -92,6 +84,7 @@ const Setting = (props) => {
     const audioClip = await fetch(uri);
     const audioBytes = await audioClip.blob();
     playSound(uri);
+    const storageRef = ref(storage, `${email}.m4a`);
     uploadBytes(storageRef, audioBytes).then(() => {
       console.log('Uploaded');
     }).catch(err => {
@@ -99,229 +92,194 @@ const Setting = (props) => {
     });
   }
 
+  const fillInitialData = () => {
+    let userDetails;
+    AsyncStorage.getItem('user').then(async(user) => {
+      userDetails = JSON.parse(user);
+      console.log('users bitchessss', JSON.parse(user).email);
+      const querySnapshot = await getDocs(collection(db, "users"), { email: userDetails.email });
+      querySnapshot.forEach((doc) => {
+          let obj = doc.data();
+          console.log('obj', obj);
+          obj['id'] = doc.id;
+          setUsername(obj.username);
+          if(obj?.description)
+            setDescription(obj.description);
+          if(obj?.address)
+            setAddress(obj.address);
+          setEmail(obj.email);
+          setUid(doc.id);
+      });
+    });
+  }
+
+  const submitForm = async () => {
+    const docRef = doc(db, "users", uid);
+    await updateDoc(docRef, {
+      username: username,
+      description: description,
+      address: address
+    });
+
+    const credential = firebase.auth.EmailAuthProvider.credential(
+      email,
+      password
+    );
+    await firebase.auth().currentUser.reauthenticateWithCredential(credential);
+    const user = auth.currentUser;
+    await user.updatePassword(password);
+    props.navigation.navigate('Home');
+  }
+
   const recordAudio = async () => {
     await startRecording();
     setTimeout(() => {
       stopRecording();
-    }, 10000);
+    }, 5000);
   }
 
   return (
-    <View style={styles.body}>
-      <View style={styles.header}>
-        <Pressable onPress={() => props.navigation.navigate('Home')}>
-          <Image style={styles.backIcon} source={leftChevron} />
-        </Pressable>
-        <Text style={styles.header}>Settings</Text>
-
-        <Pressable onPress={() => props.navigation.navigate('UserProfile')}>
-          <Image style={styles.image} source={UserProfile} />
-        </Pressable>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.body}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Image source={UserProfile} style={styles.icon} />
+          </View>
+          <View style={styles.headerRight}>
+            <Text style={[styles.whiteText, styles.headerFont]}>{username}</Text>
+            <Text style={[styles.whiteText]}>{description}</Text>
+          </View>
+        </View>
+        <View style={styles.contentBody}>
+          <Text style={styles.title}>Username</Text>
+          <View style={styles.inputContainer}>
+            <TextInput style={styles.input} placeholder="Anirudh" value={username} onChangeText={t => setUsername(t)} />
+            <Pressable style={styles.link} onPress={() => { }}>
+              <Text style={styles.linkText}>Edit</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.title}>Password</Text>
+          <View style={styles.inputContainer}>
+            <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={t => setPassword(t)} />
+            <Pressable style={styles.link} onPress={() => { }}>
+              <Text style={styles.linkText}>Edit</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.title}>Description</Text>
+          <View style={styles.inputContainer}>
+            <TextInput style={styles.input} placeholder="Description" value={description} onChangeText={t => setDescription(t)} />
+            <Pressable style={styles.link} onPress={() => { }}>
+              <Text style={styles.linkText}>Edit</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.title}>Address</Text>
+          <View style={styles.inputContainer}>
+            <TextInput style={styles.input} placeholder="412 Summit Avenue" value={address} onChangeText={t => setAddress(t)} />
+            <Pressable style={styles.link} onPress={() => { }}>
+              <Text style={styles.linkText}>Edit</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.title}>Dictation</Text>
+          <View style={styles.inputContainer}>
+            <TextInput style={[styles.input, styles.boldText]} editable={false} placeholder="Rerecord Audio" />
+            <Pressable style={styles.link} onPress={() => recordAudio()}>
+              <Text style={styles.linkText}>Rerecord</Text>
+            </Pressable>
+          </View>
+          <View style={styles.buttonContainer}>
+            <Pressable style={styles.button1} onPress={() => submitForm()}>
+              <Text style={styles.buttonTextFinish}>Finish</Text>
+            </Pressable>
+          </View>
+        </View>
       </View>
-      <View><Text style={styles.header1}>UserNameee</Text>
-      </View>
-      <View>
-        <TextInput style={styles.search} placeholder="UserName" />
-        <Pressable style={styles.button2} onPress={() => props.navigation.navigate('Edit')}>
-          <Text style={styles.buttonText1}>Edit</Text>
-        </Pressable>
-      </View>
-      <View><Text style={styles.header1}>Password</Text>
-      </View>
-      <View>
-        <TextInput style={styles.search} placeholder="Password" />
-        <Pressable style={styles.button2} onPress={() => props.navigation.navigate('Edit')}>
-          <Text style={styles.buttonText1}>Edit</Text>
-        </Pressable>
-      </View>
-      <View><Text style={styles.header1}>Address</Text>
-      </View>
-      <View>
-        <TextInput style={styles.search} placeholder="Address" />
-        <Pressable style={styles.button2} onPress={() => props.navigation.navigate('Edit')}>
-          <Text style={styles.buttonText1}>Edit</Text>
-        </Pressable>
-      </View>
-      <View><Text style={styles.header1}>Dictation</Text>
-      </View>
-      <View style={styles.buttonContainer_fs}>
-        <Pressable style={styles.button1} onPress={() => props.navigation.navigate('Play Audio')}>
-          <Text style={styles.buttonText}>Play Audio</Text>
-        </Pressable>
-        <Pressable style={styles.button3} onPress={() => recordAudio()}>
-          <Text style={styles.buttonText1}>Rerecord</Text>
-        </Pressable>
-      </View>
-      <View style={styles.scrollParent}>
-      </View>
-      <View style={styles.buttonContainer_fs1}>
-        <Pressable style={styles.button1} onPress={() => props.navigation.navigate('Save')}>
-          <Text style={styles.buttonText}>Save Changes</Text>
-        </Pressable>
-      </View>
-    </View>
+    </SafeAreaView>
   )
 }
 const styles = StyleSheet.create({
-  body: {
-    padding: 90,
-    position: 'relative',
+  container: {
     flex: 1,
+  },
+  body: {
+    position: 'relative',
     marginTop: 0,
-    //backgroundColor:'#5d6473',
-    paddingHorizontal: 20,
-    //marginTop:0,
-    //marginBottom:0,
+    backgroundColor: '#fff',
+    flex: 1,
   },
-  houseimage: {
-    width: 50,
-    height: 50,
-    marginRight: 50,
+  scrollParent: {
+    flex: 1,
+    height: '50%',
   },
-  backButton: {
-    marginTop: 20,
-    paddingLeft: 20,
-    paddingTop: 20,
+  header: {
+    backgroundColor: '#000000',
+    paddingTop: 100,
     paddingBottom: 20,
     display: 'flex',
-  },
-  backIcon: {
-    width: 18,
-    height: 30,
-    marginRight: 10,
-    marginLeft: 0,
-    marginTop: 10,
-  },
-  image: {
-    width: 50,
-    height: 50,
-    marginLeft: 5,
-    marginRight: 10,
-  },
-  header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    position: 'fixed',
-    //marginRight:20,
+    justifyContent: 'center',
   },
-  header: {
-    fontSize: 30,
-    color: '#000000',
-    fontWeight: 'bold',
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    height: 40,
-    marginLeft: 25,
+  headerRight: {
+    marginLeft: 20,
+  },
+  headerFont: {
+    fontSize: 25,
+  },
+  whiteText: {
+    color: '#ffffff',
+    textAlign: 'center',
+  }, icon: {
+    width: 75,
+    height: 75,
+  },
+  inputContainer: {
     marginBottom: 20,
   },
-  header1: {
-    marginRight: 10,
+  input: {
+    backgroundColor: '#F3F5F7',
     padding: 10,
-    height: 40,
-    fontWeight: 'bold',
-  },
-  header2: {
-    marginLeft: 330,
-    padding: 5,
-    height: 10,
-    fontSize: 20,
-    color: '#5A6978',
-    fontWeight: 'bold',
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
-  header3: {
-    marginLeft: 285,
-    padding: 5,
-    height: 10,
-    fontSize: 20,
-    color: '#5A6978',
-    fontWeight: 'bold',
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
-  search: {
-    borderWidth: 2,
-    borderColor: '#000000',
-    borderRadius: 3,
-    padding: 5,
-    paddingLeft: 35,
     marginTop: 10,
-    backgroundColor: '#EFF2F7',
-    height: 30,
+    borderRadius: 5,
+    height: 50,
+    fontSize: 20,
+    color: '#000000',
+  }, contentBody: {
+    marginTop: 10,
+    paddingHorizontal: 15,
+    display: 'flex',
+  }, title: {
+    fontSize: 20,
+  }, link: {
+    marginTop: 10,
+    position: 'absolute',
+    right: 5,
+    alignItems: 'center',
+    marginTop: 25,
+  }, linkText: {
+    color: '#5A6978',
+    textDecorationLine: 'underline',
+  }, boldText: {
     fontWeight: 'bold',
   },
-  icon: {
-    width: 25,
-    height: 25,
-  },
-  buttonContainer_fs: {
-    flex: 1,
+  buttonContainer: {
     justifyContent: 'flex-end',
-    marginTop: 130,
-    marginBottom: 10,
-    marginRight: 30,
-  },
-  buttonContainer_fs1: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    marginTop: 80,
-    marginBottom: 10,
-    marginRight: 30,
+    marginTop: 5,
+    marginBottom: 0,
   },
   button1: {
     width: '100%',
     backgroundColor: '#000000',
     borderRadius: 10,
     marginTop: 50,
-    marginLeft: 20,
     height: 50,
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
     display: 'flex',
   },
-  button2: {
-    width: '40%',
-    backgroundColor: '#000000',
-    borderRadius: 10,
-    marginTop: 10,
-    marginLeft: 190,
-    height: 25,
-    alignSelf: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
-    display: 'flex',
-  },
-  button3: {
-    width: '35%',
-    backgroundColor: '#000000',
-    borderRadius: 10,
-    marginTop: 10,
-    marginLeft: 190,
-    height: 70,
-    alignSelf: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
-    display: 'flex',
-  },
-  buttonText: {
+  buttonTextFinish: {
     color: '#ffffff',
     fontSize: 20,
-    //fontWeight: 'bold',
   },
-  buttonText1: {
-    color: '#ffffff',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  scrollParent: {
-    flex: 1,
-    height: '50%',
-  }
 })
 export default Setting
