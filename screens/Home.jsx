@@ -98,7 +98,6 @@ const Home = (props) => {
     }
 
     const getImage = async (uri) => {
-        console.log('uri', uri);
         const pathReference = ref(storage, uri);
         const url = await getDownloadURL(pathReference);
         return url;
@@ -123,11 +122,9 @@ const Home = (props) => {
                             if(item.image != "") {
                                 var URI;
                                 getImage(item.image).then(url => {
-                                    console.log('url is crazy', url);
                                     URI = url;
                                 });
                             }
-                                console.log('URI crazy ', URI);
                             return (
                                 <Pressable onPress={() => props.navigation.navigate('GroupList', {item: item})} key={item.id} >
                                     <View style={styles.group} key={index}>
