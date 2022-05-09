@@ -28,15 +28,16 @@ import Home from '../screens/Home';
 import SplashScreen from '../screens/SplashScreen';
 import UserProfile from '../screens/UserProfile';
 import GroupList from '../screens/GroupList';
+import Loading from '../screens/Loading';
 import Setting from '../screens/Setting';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
     <NavigationContainer>
-        <Stack.Navigator initialRouteName="Setting">
+        <Stack.Navigator initialRouteName="Loading">
           <Stack.Screen
-            name="CreateGroup"
-            component={CreateGroup}
+            name="Loading"
+            component={Loading}
             options={{ headerShown: false }}
           />
           <Stack.Screen
