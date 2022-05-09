@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Button, Pressable, Image, TextInput } from 'react-native'
+import { View, Text, StyleSheet, Button, Pressable, Image, TextInput, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState, useRef } from 'react'
 import UserProfileImg from '../assets/images/UserImage.png'
 import MIC from '../assets/images/Mic.png'
@@ -10,19 +10,22 @@ import { collection, getDocs, getFirestore, query, where } from "firebase/firest
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import app from '../firebase';
 import { Audio } from 'expo-av';
+import Loading from './Loading';
+import Layout from '../constants/Layout'
 
 
 const db = getFirestore(app);
 const storage = getStorage();
-
 
 const UserProfile = (props) => {
   const AudioPlayer = useRef(new Audio.Sound());
   const [sound, setSound] = React.useState();
   const [user, setUser] = useState({});
   const [userTemp, setUserTemp] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+
+
   useEffect(() => {
-    // get the data user from asyncstorage
     console.log('useEffect');
     AsyncStorage.getItem('user').then((user) => {
       getUserDetails(user);
@@ -70,6 +73,7 @@ const UserProfile = (props) => {
       );
       setSound(sound);
       await sound.playAsync();
+      setIsLoading(false);
     } catch (error) {
       console.log(error);
       if (error.code.includes('does not exist')) {
@@ -80,6 +84,7 @@ const UserProfile = (props) => {
 
   const playAudio = () => {
     var userDetails;
+    setIsLoading(true);
     AsyncStorage.getItem('user').then(user => {
       userDetails = JSON.parse(user);
       const gsReference = ref(storage, `${userDetails.email}.m4a`);
@@ -96,11 +101,11 @@ const UserProfile = (props) => {
       console.log("crazy", err);
     });
   }
-
   return (
+    <>
+    { isLoading && <Loading />}
     <View style={styles.body}>
       <View style={styles.UserNameContainer}>
-        {/*<Image style={styles.image1} source={UserProfileImg} />*/}
         <Pressable onPress={() => props.navigation.navigate('UserImage')}>
           <Image style={styles.image1} source={UserProfileImg} />
 
@@ -149,9 +154,9 @@ const UserProfile = (props) => {
             )
           }
           )}
-
       </View>
     </View>
+    </>
   )
 }
 const styles = StyleSheet.create({

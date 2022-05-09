@@ -8,8 +8,7 @@ import app from '../firebase';
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { Audio } from 'expo-av';
 import { AsyncStorage } from 'react-native';
-
-
+import Loading from './Loading';
 
 
 const storage = getStorage();
@@ -22,9 +21,22 @@ const GroupList = (props) => {
     const [user, setUser] = useState([]);
     const AudioPlayer = useRef(new Audio.Sound());
     const [sound, setSound] = React.useState();
+    const [loading, setIsLoading] = useState(false);
 
     useEffect(() => {
         getMembers();
+        AsyncStorage.getItem('user').then(async (user) => {
+            let userDetails = JSON.parse(user);
+            console.log('users bitchessss', JSON.parse(user));
+            const querySnapshot = await getDocs(collection(db, "users"), { email: userDetails.email });
+            querySnapshot.forEach((doc) => {
+                let obj = doc.data();
+                obj['id'] = doc.id;
+                setUser(obj);
+                console.log('user', obj);
+            });
+        });
+
     }, [])
 
     React.useEffect(() => {
@@ -38,6 +50,7 @@ const GroupList = (props) => {
 
 
     const getMembers = async () => {
+        setIsLoading(true);
         let arr = [];
         const members = await getDocs(collection(db, "users"));
         members.forEach(member => {
@@ -49,6 +62,7 @@ const GroupList = (props) => {
             }
         });
         setMembers(arr);
+        setIsLoading(false);
     }
 
     async function playSound(URI) {
@@ -58,10 +72,12 @@ const GroupList = (props) => {
             );
             setSound(sound);
             await sound.playAsync();
-        } catch (error) { 
+            setIsLoading(false);
+        } catch (error) {
+            setIsLoading(false);
             console.log(error);
             // If we get object not found error alert user that 'account doesn't exist'
-            console.log('sda',error.code.includes('does not exist'));
+            console.log('sda', error.code.includes('does not exist'));
             // See if the words 'does not exist' is there is the string error.code
             if (error.code.includes('does not exist')) {
                 alert('Recording does not exist');
@@ -70,6 +86,7 @@ const GroupList = (props) => {
     }
 
     const playAudio = (item) => {
+        setIsLoading(true);
         var userDetails;
         AsyncStorage.getItem('user').then(user => {
             userDetails = JSON.parse(user);
@@ -81,10 +98,11 @@ const GroupList = (props) => {
                 if (error.code == 'storage/object-not-found') {
                     alert('Recording does not exist');
                 }
+                setIsLoading(false);
             });
             setUser(JSON.parse(user));
         }).catch(err => {
-            console.log("crazy",err);
+            console.log("crazy", err);
         });
     }
 
@@ -102,57 +120,63 @@ const GroupList = (props) => {
     }
 
     return (
-        <View style={styles.body}>
-            <View style={styles.backButton}>
-                <Pressable style={styles.homeButton} onPress={() => props.navigation.navigate('Home')}>
-                    <Image style={styles.backIcon} source={leftChevron} />
-                    <Text style={styles.backButtonText}>Back</Text>
-                </Pressable>
-            </View>
-            <View style={styles.header}>
-                <View style={styles.headerText}>
-                    <Text style={styles.header}>{props.route.params.item.name}</Text>
-                    <Text style={styles.subtitle}>{props.route.params.item.description}</Text>
+        <>
+            {loading && <Loading />}
+            <View style={styles.body}>
+                <View style={styles.backButton}>
+                    <Pressable style={styles.homeButton} onPress={() => props.navigation.navigate('Home')}>
+                        <Image style={styles.backIcon} source={leftChevron} />
+                        <Text style={styles.backButtonText}>Back</Text>
+                    </Pressable>
                 </View>
-                <Pressable onPress={() => downloadSchedule()}>
-                    <View style={styles.buttonContainer}>
-                        <Text style={styles.buttonText}>Class Schedule</Text>
+                <View style={styles.header}>
+                    <View style={styles.headerText}>
+                        <Text style={styles.header}>{props.route.params.item.name}</Text>
+                        <Text style={styles.subtitle}>{props.route.params.item.description}</Text>
                     </View>
-                </Pressable>
-            </View>
-            <ScrollView style={styles.scrollView}>
-                <View style={styles.scrollParent}>
-                    {
-                        members.map((item, index) => {
-                            return (
-                                <Pressable onPress={() => props.navigation.navigate('Setting')} key={index} >
-                                    <View style={styles.group} key={index}>
-                                        <Image style={[styles.icon, styles.groupImage]} source={UserProfile} />
-                                        <View style={styles.groupInfo}>
-                                            <View style={styles.groupNameContainer}>
-                                                <Text style={styles.groupNameText}>{item.username}</Text>
-                                                <Text style={styles.admin}>See More</Text>
-                                            </View>
-                                        </View>
-                                        <Pressable onPress={() => playAudio(item)}>
-                                            <View style={styles.fullWidth}>
-                                                <Image style={[styles.icon, styles.groupIcon, styles.speakerIcon]} source={SpeakerIcon} />
-                                            </View>
-                                        </Pressable>
-                                    </View>
-                                </Pressable>
-                            )
-                        })
-                    }
+                    <Pressable onPress={() => downloadSchedule()}>
+                        <View style={styles.buttonContainer}>
+                            <Text style={styles.buttonText}>Class Schedule</Text>
+                        </View>
+                    </Pressable>
                 </View>
-            </ScrollView>
-            <View style={styles.floatingButtonContainer}>
-                <Pressable style={styles.floatingButton} onPress={() => props.navigation.navigate('AddMembers', { item: props.route.params.item })}>
-                    <Text style={styles.plusButton}>+</Text>
-                    <Text style={styles.floatingButtonText}>Add Members</Text>
-                </Pressable>
+                <ScrollView style={styles.scrollView}>
+                    <View style={styles.scrollParent}>
+                        {
+                            members.map((item, index) => {
+                                return (
+                                    <Pressable onPress={() => props.navigation.navigate('Setting')} key={index} >
+                                        <View style={styles.group} key={index}>
+                                            <Image style={[styles.icon, styles.groupImage]} source={UserProfile} />
+                                            <View style={styles.groupInfo}>
+                                                <View style={styles.groupNameContainer}>
+                                                    <Text style={styles.groupNameText}>{item.username}</Text>
+                                                    <Text style={styles.admin}>See More</Text>
+                                                </View>
+                                            </View>
+                                            <Pressable onPress={() => playAudio(item)}>
+                                                <View style={styles.fullWidth}>
+                                                    <Image style={[styles.icon, styles.groupIcon, styles.speakerIcon]} source={SpeakerIcon} />
+                                                </View>
+                                            </Pressable>
+                                        </View>
+                                    </Pressable>
+                                )
+                            })
+                        }
+                    </View>
+                </ScrollView>
+                {
+                    user.profile != 'User' &&
+                    <View style={styles.floatingButtonContainer}>
+                        <Pressable style={styles.floatingButton} onPress={() => props.navigation.navigate('AddMembers', { item: props.route.params.item })}>
+                            <Text style={styles.plusButton}>+</Text>
+                            <Text style={styles.floatingButtonText}>Add Members</Text>
+                        </Pressable>
+                    </View>
+                }
             </View>
-        </View>
+        </>
     )
 }
 

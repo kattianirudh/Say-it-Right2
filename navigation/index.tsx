@@ -34,64 +34,69 @@ import Setting from '../screens/Setting';
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
     <NavigationContainer>
-        <Stack.Navigator initialRouteName="Loading">
-          <Stack.Screen
-            name="Loading"
-            component={Loading}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="AddMembers"
-            component={AddMembers}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Login"
-            component={Login}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="SplashScreen"
-            component={SplashScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Home"
-            component={Home}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="UserProfile"
-            component={UserProfile}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Setting"
-            component={Setting}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="GroupList"
-            component={GroupList}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Register"
-            component={Register}
-            options={{ headerShown: false }}
-            // options={{
-            //   title: 'Register',
-            //   headerStyle: {
-            //     backgroundColor: '#307ecc',
-            //   },
-            //   headerTintColor: '#fff',
-            //   headerTitleStyle: {
-            //     fontWeight: 'bold',
-            //   },
-            // }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <Stack.Navigator initialRouteName="SplashScreen">
+        <Stack.Screen
+          name="CreateGroup"
+          component={CreateGroup}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Loading"
+          component={Loading}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="AddMembers"
+          component={AddMembers}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Login"
+          component={Login}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="SplashScreen"
+          component={SplashScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Home"
+          component={Home}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="UserProfile"
+          component={UserProfile}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Setting"
+          component={Setting}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="GroupList"
+          component={GroupList}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Register"
+          component={Register}
+          options={{ headerShown: false }}
+        // options={{
+        //   title: 'Register',
+        //   headerStyle: {
+        //     backgroundColor: '#307ecc',
+        //   },
+        //   headerTintColor: '#fff',
+        //   headerTitleStyle: {
+        //     fontWeight: 'bold',
+        //   },
+        // }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -143,10 +148,10 @@ function RootNavigator() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-            name="Setting"
-            component={Setting}
-            options={{ headerShown: false }}
-          />
+        name="Setting"
+        component={Setting}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="GroupList"
         component={GroupList}

@@ -1,12 +1,12 @@
 import { View, Text, Pressable, Image, StyleSheet, TextInput, ScrollView, FlatList } from 'react-native'
-import React, {useState, useEffect} from 'react'
+import React, { useState, useEffect } from 'react'
 import UserProfile from '../assets/images/UserProfile.png'
 import searchIcon from '../assets/images/searchIcon.png'
 import rightChevron from '../assets/images/rightChevron.png'
-import { collection, getDocs, getFirestore } from "firebase/firestore"; 
+import { collection, getDocs, getFirestore } from "firebase/firestore";
 import app from '../firebase';
 import { getStorage, ref, getDownloadURL, } from "firebase/storage";
-
+import { AsyncStorage } from 'react-native';
 
 
 const db = getFirestore(app);
@@ -76,6 +76,7 @@ let arr = [
 const Home = (props) => {
     const [data, setData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
+    const [user, setUser] = useState({});
 
     useEffect(async () => {
         let arr = [];
@@ -87,6 +88,21 @@ const Home = (props) => {
         });
         setData(arr);
         setFilteredData(arr);
+        AsyncStorage.getItem('user').then(async (user) => {
+            let userDetails = JSON.parse(user);
+            const querySnapshot = await getDocs(collection(db, "users"), { email: userDetails.email });
+            querySnapshot.forEach((doc) => {
+                let obj = doc.data();
+                obj['id'] = doc.id;
+                setUsername(obj.username);
+                if (obj?.description)
+                    setDescription(obj.description);
+                if (obj?.address)
+                    setAddress(obj.address);
+                setEmail(obj.email);
+                setUser(obj);
+            });
+        });
     }, []);
 
     const searchFilter = (text) => {
@@ -113,25 +129,25 @@ const Home = (props) => {
             </View>
             <View>
                 <TextInput style={styles.search} placeholder="Search Public Groups" onChangeText={text => searchFilter(text)} />
-                <Image style={[styles.icon ,styles.searchIcon]} source={searchIcon} />
+                <Image style={[styles.icon, styles.searchIcon]} source={searchIcon} />
             </View>
             <ScrollView>
                 <View style={styles.scrollParent}>
                     {
                         filteredData.map((item, index) => {
-                            if(item.image != "") {
+                            if (item.image != "") {
                                 var URI;
                                 getImage(item.image).then(url => {
                                     URI = url;
                                 });
                             }
                             return (
-                                <Pressable onPress={() => props.navigation.navigate('GroupList', {item: item})} key={item.id} >
+                                <Pressable onPress={() => props.navigation.navigate('GroupList', { item: item })} key={item.id} >
                                     <View style={styles.group} key={index}>
-                                        {   
+                                        {
                                             item.image == "" ?
-                                            <Image style={[styles.icon, styles.groupImage]} source={UserProfile} />:
-                                            <Image style={[styles.icon, styles.groupImage, styles.roundImage]} source={{uri: item.image}} />
+                                                <Image style={[styles.icon, styles.groupImage]} source={UserProfile} /> :
+                                                <Image style={[styles.icon, styles.groupImage, styles.roundImage]} source={{ uri: item.image }} />
                                         }
                                         <View style={styles.groupInfo}>
                                             <View style={styles.groupNameContainer}>
@@ -139,12 +155,12 @@ const Home = (props) => {
                                                 {
                                                     item.isAdmin ? <Text style={styles.admin}>Admin</Text> : null
                                                 }
-                                                
+
                                             </View>
                                             <Text style={styles.groupDescription}>{item.description}</Text>
                                         </View>
                                         <View style={styles.fullWidth}>
-                                            <Image style={[styles.icon ,styles.groupIcon]} source={rightChevron} />
+                                            <Image style={[styles.icon, styles.groupIcon]} source={rightChevron} />
                                         </View>
                                     </View>
                                 </Pressable>
@@ -152,13 +168,20 @@ const Home = (props) => {
                         })
                     }
                 </View>
+            {
+                user && user.profile &&
+                <Text>aa {user.profile}</Text>
+            }
             </ScrollView>
-            <View style={styles.floatingButtonContainer}>
+            {   console.log('for the love of god', user) &&
+                user.profile !='' && user.profile != 'User' &&
+                <View style={styles.floatingButtonContainer}>
                 <Pressable style={styles.floatingButton} onPress={() => props.navigation.navigate('CreateGroup')}>
                     <Text style={styles.plusButton}>+</Text>
                     <Text style={styles.floatingButtonText}>Create a Group</Text>
                 </Pressable>
             </View>
+            }
         </View>
     )
 }

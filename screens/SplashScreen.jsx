@@ -1,18 +1,18 @@
 import { View, Text, StyleSheet, Button, Pressable, Image } from 'react-native'
 import React from 'react'
-import svgImage from '../assets/images/SIR.svg'
-import Mic from '../assets/images/Mic.svg'
+import svgImage from '../assets/images/SIR.png'
+import Mic from '../assets/images/Mic.png'
 // import { SvgUri } from 'react-native-svg';
 // import RightChev from '../assets/images/rightChev.png'
 
 const SplashScreen = (props) => {
     return (
         <View style={styles.body}>
-            {/* <Image source={{uri: 'https://hatrabbits.com/wp-content/uploads/2017/01/random.jpg'}} style={[styles.icon, styles.image]} /> */}
-            <Image source={require('../assets/images/splash.png')} style={[styles.icon, styles.image]} />
+          <Text style={styles.title}>Say It Right</Text>
+            <Image source={Mic} style={[styles.icon, styles.image]} />
             <Text style={styles.subtitle}>Saying the name can never go wrong again</Text>
             <View style={styles.buttonContainer}>
-                <Pressable style={styles.button} onPress={() => props.navigation.navigate('Home')}>
+                <Pressable style={styles.button} onPress={() => props.navigation.navigate('Login')}>
                 <Text style={styles.buttonText}>Login</Text>
                 </Pressable>
                 <Text style={styles.text}>
@@ -30,6 +30,12 @@ const styles = StyleSheet.create({
     body: {
       padding: 20,
       flex: 1,
+      marginTop: 50,
+    },
+    title: {
+      fontSize: 40,
+      textAlign: 'center',
+      marginBottom: 20,
     },
     text: {
       color: '#000000',
@@ -74,7 +80,7 @@ const styles = StyleSheet.create({
     },
     image: {
       width: 200,
-      height: 200,
+      height: 250,
     },
     logo: {
       alignSelf: 'center',

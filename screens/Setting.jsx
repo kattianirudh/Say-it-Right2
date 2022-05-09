@@ -11,7 +11,8 @@ import app from '../firebase';
 import { collection, getDocs, getFirestore, updateDoc, doc } from "firebase/firestore";
 import { AsyncStorage } from 'react-native';
 import { getAuth, updatePassword } from "firebase/auth";
-
+import Loading from './Loading';
+import { isLoaded, isLoading } from 'expo-font';
 
 const storage = getStorage(app);
 // const storageRef = ref(storage, 'record.m4a');
@@ -24,16 +25,17 @@ const Setting = (props) => {
   const AudioPlayer = useRef(new Audio.Sound());
   const [recording, setRecording] = React.useState();
   var recordingGlobal;
-  
+
   const auth = getAuth();
 
 
   const [uid, setUid] = useState('');
   const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [description, setDescription] = useState('');
-  const [address, setAddress] = useState('');
 
   useEffect(() => {
     fillInitialData();
@@ -80,7 +82,7 @@ const Setting = (props) => {
     await recordingGlobal.stopAndUnloadAsync();
     const uri = recordingGlobal.getURI();
     console.log('Recording stopped and stored at', uri);
-
+    setLoading(false);
     const audioClip = await fetch(uri);
     const audioBytes = await audioClip.blob();
     playSound(uri);
@@ -94,21 +96,21 @@ const Setting = (props) => {
 
   const fillInitialData = () => {
     let userDetails;
-    AsyncStorage.getItem('user').then(async(user) => {
+    AsyncStorage.getItem('user').then(async (user) => {
       userDetails = JSON.parse(user);
       console.log('users bitchessss', JSON.parse(user).email);
       const querySnapshot = await getDocs(collection(db, "users"), { email: userDetails.email });
       querySnapshot.forEach((doc) => {
-          let obj = doc.data();
-          console.log('obj', obj);
-          obj['id'] = doc.id;
-          setUsername(obj.username);
-          if(obj?.description)
-            setDescription(obj.description);
-          if(obj?.address)
-            setAddress(obj.address);
-          setEmail(obj.email);
-          setUid(doc.id);
+        let obj = doc.data();
+        console.log('obj', obj);
+        obj['id'] = doc.id;
+        setUsername(obj.username);
+        if (obj?.description)
+          setDescription(obj.description);
+        if (obj?.address)
+          setAddress(obj.address);
+        setEmail(obj.email);
+        setUid(doc.id);
       });
     });
   }
@@ -132,6 +134,8 @@ const Setting = (props) => {
   }
 
   const recordAudio = async () => {
+    alert("Please pronounce your name in 5 seconds");
+    setLoading(true);
     await startRecording();
     setTimeout(() => {
       stopRecording();
@@ -139,61 +143,64 @@ const Setting = (props) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.body}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Image source={UserProfile} style={styles.icon} />
+    <>
+      {loading && <Loading />}
+      <SafeAreaView style={styles.container}>
+        <View style={styles.body}>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <Image source={UserProfile} style={styles.icon} />
+            </View>
+            <View style={styles.headerRight}>
+              <Text style={[styles.whiteText, styles.headerFont]}>{username}</Text>
+              <Text style={[styles.whiteText]}>{description}</Text>
+            </View>
           </View>
-          <View style={styles.headerRight}>
-            <Text style={[styles.whiteText, styles.headerFont]}>{username}</Text>
-            <Text style={[styles.whiteText]}>{description}</Text>
+          <View style={styles.contentBody}>
+            <Text style={styles.title}>Username</Text>
+            <View style={styles.inputContainer}>
+              <TextInput style={styles.input} placeholder="Anirudh" value={username} onChangeText={t => setUsername(t)} />
+              <Pressable style={styles.link} onPress={() => { }}>
+                <Text style={styles.linkText}>Edit</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.title}>Password</Text>
+            <View style={styles.inputContainer}>
+              <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={t => setPassword(t)} />
+              <Pressable style={styles.link} onPress={() => { }}>
+                <Text style={styles.linkText}>Edit</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.title}>Description</Text>
+            <View style={styles.inputContainer}>
+              <TextInput style={styles.input} placeholder="Description" value={description} onChangeText={t => setDescription(t)} />
+              <Pressable style={styles.link} onPress={() => { }}>
+                <Text style={styles.linkText}>Edit</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.title}>Address</Text>
+            <View style={styles.inputContainer}>
+              <TextInput style={styles.input} placeholder="412 Summit Avenue" value={address} onChangeText={t => setAddress(t)} />
+              <Pressable style={styles.link} onPress={() => { }}>
+                <Text style={styles.linkText}>Edit</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.title}>Dictation</Text>
+            <View style={styles.inputContainer}>
+              <TextInput style={[styles.input, styles.boldText]} editable={false} placeholder="Rerecord Audio" />
+              <Pressable style={styles.link} onPress={() => recordAudio()}>
+                <Text style={styles.linkText}>Rerecord</Text>
+              </Pressable>
+            </View>
+            <View style={styles.buttonContainer}>
+              <Pressable style={styles.button1} onPress={() => submitForm()}>
+                <Text style={styles.buttonTextFinish}>Finish</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
-        <View style={styles.contentBody}>
-          <Text style={styles.title}>Username</Text>
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.input} placeholder="Anirudh" value={username} onChangeText={t => setUsername(t)} />
-            <Pressable style={styles.link} onPress={() => { }}>
-              <Text style={styles.linkText}>Edit</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.title}>Password</Text>
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={t => setPassword(t)} />
-            <Pressable style={styles.link} onPress={() => { }}>
-              <Text style={styles.linkText}>Edit</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.title}>Description</Text>
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.input} placeholder="Description" value={description} onChangeText={t => setDescription(t)} />
-            <Pressable style={styles.link} onPress={() => { }}>
-              <Text style={styles.linkText}>Edit</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.title}>Address</Text>
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.input} placeholder="412 Summit Avenue" value={address} onChangeText={t => setAddress(t)} />
-            <Pressable style={styles.link} onPress={() => { }}>
-              <Text style={styles.linkText}>Edit</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.title}>Dictation</Text>
-          <View style={styles.inputContainer}>
-            <TextInput style={[styles.input, styles.boldText]} editable={false} placeholder="Rerecord Audio" />
-            <Pressable style={styles.link} onPress={() => recordAudio()}>
-              <Text style={styles.linkText}>Rerecord</Text>
-            </Pressable>
-          </View>
-          <View style={styles.buttonContainer}>
-            <Pressable style={styles.button1} onPress={() => submitForm()}>
-              <Text style={styles.buttonTextFinish}>Finish</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </>
   )
 }
 const styles = StyleSheet.create({
