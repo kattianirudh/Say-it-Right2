@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Button, Pressable, Image, TextInput, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, Button, Pressable, Image, TextInput, ScrollView, Linking } from 'react-native'
 import React, { useRef, useState, useEffect } from 'react'
 import UserProfile from '../assets/images/UserProfile.png'
 import leftChevron from '../assets/images/leftChevron.png'
@@ -58,25 +58,46 @@ const GroupList = (props) => {
             );
             setSound(sound);
             await sound.playAsync();
-        } catch (error) { console.log(error); }
+        } catch (error) { 
+            console.log(error);
+            // If we get object not found error alert user that 'account doesn't exist'
+            console.log('sda',error.code.includes('does not exist'));
+            // See if the words 'does not exist' is there is the string error.code
+            if (error.code.includes('does not exist')) {
+                alert('Recording does not exist');
+            }
+        }
     }
 
     const playAudio = (item) => {
-        console.log('item: ', item);
-
         var userDetails;
         AsyncStorage.getItem('user').then(user => {
             userDetails = JSON.parse(user);
-            console.log('userDetails', userDetails);
             const gsReference = ref(storage, `${item.email}.m4a`);
             getDownloadURL(gsReference).then(url => {
                 playSound(url);
             }).catch(error => {
                 console.log(error);
+                if (error.code == 'storage/object-not-found') {
+                    alert('Recording does not exist');
+                }
             });
             setUser(JSON.parse(user));
         }).catch(err => {
-            console.log(err);
+            console.log("crazy",err);
+        });
+    }
+
+    const downloadSchedule = () => {
+        let groupName = props.route.params.item.name;
+        const gsReference = ref(storage, `${groupName}.pdf`);
+        getDownloadURL(gsReference).then(url => {
+            Linking.openURL(url);
+        }).catch(error => {
+            console.log(error);
+            if (error.code == 'storage/object-not-found') {
+                alert('Schedule does not exist');
+            }
         });
     }
 
@@ -93,7 +114,7 @@ const GroupList = (props) => {
                     <Text style={styles.header}>{props.route.params.item.name}</Text>
                     <Text style={styles.subtitle}>{props.route.params.item.description}</Text>
                 </View>
-                <Pressable>
+                <Pressable onPress={() => downloadSchedule()}>
                     <View style={styles.buttonContainer}>
                         <Text style={styles.buttonText}>Class Schedule</Text>
                     </View>
@@ -186,6 +207,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         display: 'flex',
+        borderWidth: 1,
     },
     headerText: {
         marginLeft: 20,

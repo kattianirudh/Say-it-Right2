@@ -6,7 +6,7 @@ import app from '../firebase';
 import { doc, setDoc, collection, getDocs, addDoc, getFirestore } from "firebase/firestore"; 
 import { DocumentPicker, ImagePicker } from 'expo';
 import { getDocumentAsync } from 'expo-document-picker';
-import { getStorage, ref, uploadBytes } from "firebase/storage";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { getApp } from "firebase/app";
 
 
@@ -59,6 +59,7 @@ const CreateGroup = (props) => {
     const [fileResponse, setFileResponse] = useState([]);
     const [schedule, setSchedule] = useState('');
     const [image, setImage] = useState('');
+    const [url, setUrl] = useState('');
 
     useEffect( async () => {
         let arr = [];
@@ -73,23 +74,28 @@ const CreateGroup = (props) => {
 
     const handleDocumentSelection = async () => {
         const file = await getDocumentAsync({
-            copyToCacheDirectory: false
+            copyToCacheDirectory: false,
+            type: ['application/pdf', 'pdf'], 
         });
 
         console.log('file',file);
         const fileClip = await fetch(file.uri);
         const fileBytes = await fileClip.blob();
-        let storageRef = ref(storage, file.name);
-        console.log(file);
-        try {
-            uploadBytes(storageRef, fileBytes).then(() => {
-                console.log('Uploaded');
-                setSchedule(file.name);
-              }).catch(err => {
-                console.log('Failed to upload', err);
-            });
-        } catch (error) {
-            console.log(error);
+        // let storageRef = ref(storage, );
+        // make storage ref with name as the name of group with the filetype appended at end
+        if(groupName) {
+            let filetype = file.name.split('.').pop();
+            const storageRef = ref(storage, `${groupName}.${filetype}`); 
+            try {
+                uploadBytes(storageRef, fileBytes).then(() => {
+                    console.log('Uploaded');
+                    setSchedule(file.name);
+                }).catch(err => {
+                    console.log('Failed to upload', err);
+                });
+            } catch (error) {
+                console.log(error);
+            }
         }
     };
 
@@ -137,6 +143,10 @@ const CreateGroup = (props) => {
             uploadBytes(storageRef, fileBytes).then(() => {
                 console.log('Uploaded');
                 setImage(file.name);
+                getDownloadURL(storageRef).then(url => {
+                    setUrl(url);
+                    console.log('url uploading', url);
+                });
               }).catch(err => {
                 console.log('Failed to upload', err);
             });
@@ -151,7 +161,7 @@ const CreateGroup = (props) => {
             description: groupDescription,
             members: groupMembers,
             schedule: schedule,
-            image: image,
+            image: url,
         }).then(() => {
             props.navigation.navigate('Home');
         });

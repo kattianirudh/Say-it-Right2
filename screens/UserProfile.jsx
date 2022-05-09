@@ -1,56 +1,101 @@
 import { View, Text, StyleSheet, Button, Pressable, Image, TextInput } from 'react-native'
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import UserProfileImg from '../assets/images/UserImage.png'
 import MIC from '../assets/images/Mic.png'
 import Setting from '../assets/images/Raster.png'
 import leftChevron from '../assets/images/leftChevron.png'
 import UserProfileI from '../assets/images/UserProfile.png'
 import { AsyncStorage } from 'react-native';
-import { collection, getDocs, getFirestore, query, where } from "firebase/firestore"; 
+import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import app from '../firebase';
+import { Audio } from 'expo-av';
+
 
 const db = getFirestore(app);
-let arr = [
-  {
-    id: 1,
-    name: 'Random',
-    description: 'Random description',
-  }, {
-    id: 1,
-    name: 'Random',
-    description: 'Random description',
-  }, {
-    id: 1,
-    name: 'Random',
-    description: 'Random description',
-  },
-]
+const storage = getStorage();
+
 
 const UserProfile = (props) => {
+  const AudioPlayer = useRef(new Audio.Sound());
+  const [sound, setSound] = React.useState();
   const [user, setUser] = useState({});
-    useEffect(() => {
+  const [userTemp, setUserTemp] = useState({});
+  useEffect(() => {
     // get the data user from asyncstorage
     console.log('useEffect');
     AsyncStorage.getItem('user').then((user) => {
       getUserDetails(user);
       console.log('users bitchessss', user);
     });
-  } , [])
+  }, [])
+
+  React.useEffect(() => {
+    return sound
+      ? () => {
+        console.log('Unloading Sound');
+        sound.unloadAsync();
+      }
+      : undefined;
+  }, [sound]);
 
   const getUserDetails = async (user) => {
     // make call to firebas to get name of user with email same as user.email
     let users = JSON.parse(user);
-    const usersRef =  collection(db, 'users');
+    const usersRef = collection(db, 'users');
     let userDetails = await query(usersRef, where('email', '==', users.email));
     const querySnapshot = await getDocs(userDetails);
     let arr = [];
     querySnapshot.forEach(doc => {
       arr.push(doc.data());
     });
-    console.log(arr);
     setUser(arr[0]);
   }
 
+  const getItemDetails = async (groupName) => {
+    let arr = [];
+    const groupsRef = collection(db, 'groupList');
+    let groupDetails = await query(groupsRef, where('name', '==', groupName));
+    const querySnapshot = await getDocs(groupDetails);
+    querySnapshot.forEach(doc => {
+      arr.push(doc.data());
+    });
+    return arr[0];
+  }
+
+  async function playSound(URI) {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: URI }
+      );
+      setSound(sound);
+      await sound.playAsync();
+    } catch (error) {
+      console.log(error);
+      if (error.code.includes('does not exist')) {
+        alert('Account does not exist');
+      }
+    }
+  }
+
+  const playAudio = () => {
+    var userDetails;
+    AsyncStorage.getItem('user').then(user => {
+      userDetails = JSON.parse(user);
+      const gsReference = ref(storage, `${userDetails.email}.m4a`);
+      getDownloadURL(gsReference).then(url => {
+        playSound(url);
+      }).catch(error => {
+        console.log(error);
+        if (error.code == 'storage/object-not-found') {
+          alert('Account does not exist');
+        }
+      });
+      userTemp(JSON.parse(user));
+    }).catch(err => {
+      console.log("crazy", err);
+    });
+  }
 
   return (
     <View style={styles.body}>
@@ -74,25 +119,28 @@ const UserProfile = (props) => {
         <View><Text style={styles.header1}>User Description</Text>
           <Text style={styles.header2}>Location</Text>
         </View>
-        {/* <Image style={styles.image2} source={MIC} />*/}
-        <Pressable onPress={() => props.navigation.navigate('Play Audio')}>
+        <Pressable onPress={() => playAudio()}>
           <Image style={styles.image2} source={MIC} />
 
         </Pressable>
       </View>
       <View style={styles.scrollParent}>
-        {console.log('user: ', user)}
         {
           user.groups && user.groups.map((item, index) => {
+            let details;
+            getItemDetails(item).then(res => {
+              console.log('res', res);
+              details = res;
+            });
             return (
-              <Pressable onPress={() => props.navigation.navigate('GroupList', {item: item})}>
+              <Pressable onPress={() => props.navigation.navigate('GroupList', { item: details })}>
                 <View style={styles.group}>
-                  <Image style={[styles.icon, styles.groupImage]} source={UserProfileI} />
+                  <Image style={[styles.icon, styles.groupImage]} source={UserProfile} />
                   <View style={styles.groupInfo}>
                     <View style={styles.groupNameContainer}>
                       <Text style={styles.groupNameText}>{item}</Text>
                     </View>
-                    {/* <Text style={styles.groupDescription}>Group Description</Text> */}
+                    <Text style={styles.groupDescription}>Group Description</Text>
                   </View>
                   <View style={styles.fullWidth}>
                   </View>
@@ -217,13 +265,12 @@ const styles = StyleSheet.create({
     height: 25,
   },
   group: {
-    backgroundColor: '#C0CCDA',
+    backgroundColor: '#EFF2F7',
     marginTop: 20,
     display: 'flex',
     flexDirection: 'row',
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#969FAA',
+    padding: 15,
+    borderColor: '#8492A6',
     borderRadius: 10,
   },
   groupName: {
@@ -270,7 +317,7 @@ const styles = StyleSheet.create({
   scrollParent: {
     flex: 1,
     height: '50%',
-  } , textWhite: {
+  }, textWhite: {
     color: '#FFFFFF',
   }
 })

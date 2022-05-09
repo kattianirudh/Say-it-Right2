@@ -5,9 +5,12 @@ import searchIcon from '../assets/images/searchIcon.png'
 import rightChevron from '../assets/images/rightChevron.png'
 import { collection, getDocs, getFirestore } from "firebase/firestore"; 
 import app from '../firebase';
+import { getStorage, ref, getDownloadURL, } from "firebase/storage";
+
 
 
 const db = getFirestore(app);
+const storage = getStorage();
 
 let arr = [
     {
@@ -94,6 +97,13 @@ const Home = (props) => {
         setFilteredData(filtered);
     }
 
+    const getImage = async (uri) => {
+        console.log('uri', uri);
+        const pathReference = ref(storage, uri);
+        const url = await getDownloadURL(pathReference);
+        return url;
+    }
+
     return (
         <View style={styles.body}>
             <View style={styles.header}>
@@ -110,10 +120,22 @@ const Home = (props) => {
                 <View style={styles.scrollParent}>
                     {
                         filteredData.map((item, index) => {
+                            if(item.image != "") {
+                                var URI;
+                                getImage(item.image).then(url => {
+                                    console.log('url is crazy', url);
+                                    URI = url;
+                                });
+                            }
+                                console.log('URI crazy ', URI);
                             return (
                                 <Pressable onPress={() => props.navigation.navigate('GroupList', {item: item})} key={item.id} >
                                     <View style={styles.group} key={index}>
-                                        <Image style={[styles.icon, styles.groupImage]} source={UserProfile} />
+                                        {   
+                                            item.image == "" ?
+                                            <Image style={[styles.icon, styles.groupImage]} source={UserProfile} />:
+                                            <Image style={[styles.icon, styles.groupImage, styles.roundImage]} source={{uri: item.image}} />
+                                        }
                                         <View style={styles.groupInfo}>
                                             <View style={styles.groupNameContainer}>
                                                 <Text style={styles.groupNameText}>{item.name}</Text>
@@ -266,6 +288,9 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         marginRight: 5,
     },
+    roundImage: {
+        borderRadius: 50,
+    }
 })
 
 export default Home
