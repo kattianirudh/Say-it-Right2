@@ -35,7 +35,7 @@ const Login = (props) => {
   return (
       <View style={styles.body}>
           <Text style={styles.logintitle}>Login</Text>
-          <Picker style={styles.PickerPlaceholder}
+          {/* <Picker style={styles.PickerPlaceholder}
             selectedValue={profile}
             onValueChange={currentProfile => setProfile(currentProfile)}>
             <Picker.Item label="user" value="User" />
@@ -43,7 +43,7 @@ const Login = (props) => {
           </Picker>
           <Text>
           Selected: {profile}
-        </Text>
+        </Text> */}
           <TextInput style={styles.InputPlaceholder}
             placeholder="Email"
             value={email}

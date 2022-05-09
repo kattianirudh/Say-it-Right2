@@ -16,6 +16,7 @@ const db = getFirestore(app);
 const Register = (props) => {
   const [profile, setProfile] = useState('User');
   const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [repassword, setRepassword] = useState('')
 
@@ -31,6 +32,10 @@ const Register = (props) => {
           const docRef = await addDoc(collection(db, "users"), {
             email,
             profile,
+            groups: [],
+            address: "",
+            description: "",
+            username,
           });
           console.log("Document written with ID: ", docRef.id);
         } catch (e) {
@@ -52,6 +57,11 @@ const Register = (props) => {
           placeholder="Email"
           value={email}
           onChangeText={(text) => setEmail(text)}
+        />
+        <TextInput style={styles.InputPlaceholder}
+          placeholder="Username"
+          value={email}
+          onChangeText={(text) => setUsername(text)}
         />
         <TextInput style={styles.InputPlaceholder}
           secureTextEntry={true}

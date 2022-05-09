@@ -57,7 +57,8 @@ const GroupList = (props) => {
             let obj = member.data();
             console.log('users', obj, props.route.params.item.name);
             obj['id'] = member.id;
-            if (!obj.groups.includes(props.route.params.item.name)) {
+            console.log('obj', obj);
+            if (!obj?.groups.includes(props.route.params.item.name)) {
                 arr.push(member.data());
             }
         });

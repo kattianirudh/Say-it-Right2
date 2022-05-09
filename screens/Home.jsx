@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import UserProfile from '../assets/images/UserProfile.png'
 import searchIcon from '../assets/images/searchIcon.png'
 import rightChevron from '../assets/images/rightChevron.png'
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
 import app from '../firebase';
 import { getStorage, ref, getDownloadURL, } from "firebase/storage";
 import { AsyncStorage } from 'react-native';
@@ -11,67 +11,6 @@ import { AsyncStorage } from 'react-native';
 
 const db = getFirestore(app);
 const storage = getStorage();
-
-let arr = [
-    {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-        isAdmin: true,
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }, {
-        id: 1,
-        name: 'Random',
-        description: 'Random description',
-    }
-]
 
 const Home = (props) => {
     const [data, setData] = useState([]);
@@ -90,17 +29,14 @@ const Home = (props) => {
         setFilteredData(arr);
         AsyncStorage.getItem('user').then(async (user) => {
             let userDetails = JSON.parse(user);
-            const querySnapshot = await getDocs(collection(db, "users"), { email: userDetails.email });
+            const groupsRef = collection(db, 'users');
+            let groupDetails = await query(groupsRef, where('email', '==', userDetails.email));
+            const querySnapshot = await getDocs(groupDetails);
             querySnapshot.forEach((doc) => {
                 let obj = doc.data();
                 obj['id'] = doc.id;
-                setUsername(obj.username);
-                if (obj?.description)
-                    setDescription(obj.description);
-                if (obj?.address)
-                    setAddress(obj.address);
-                setEmail(obj.email);
                 setUser(obj);
+                console.log("userDetails", obj, userDetails.email);
             });
         });
     }, []);
@@ -168,19 +104,15 @@ const Home = (props) => {
                         })
                     }
                 </View>
-            {
-                user && user.profile &&
-                <Text>aa {user.profile}</Text>
-            }
             </ScrollView>
-            {   console.log('for the love of god', user) &&
-                user.profile !='' && user.profile != 'User' &&
+            {
+                user?.profile == 'Admin' &&
                 <View style={styles.floatingButtonContainer}>
-                <Pressable style={styles.floatingButton} onPress={() => props.navigation.navigate('CreateGroup')}>
-                    <Text style={styles.plusButton}>+</Text>
-                    <Text style={styles.floatingButtonText}>Create a Group</Text>
-                </Pressable>
-            </View>
+                    <Pressable style={styles.floatingButton} onPress={() => props.navigation.navigate('CreateGroup')}>
+                        <Text style={styles.plusButton}>+</Text>
+                        <Text style={styles.floatingButtonText}>Create a Group</Text>
+                    </Pressable>
+                </View>
             }
         </View>
     )

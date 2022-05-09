@@ -8,7 +8,7 @@ import 'firebase/storage';
 import firebase from "firebase/app";
 import 'firebase/storage';
 import app from '../firebase';
-import { collection, getDocs, getFirestore, updateDoc, doc } from "firebase/firestore";
+import { collection, getDocs, getFirestore, updateDoc, doc, query, where } from "firebase/firestore";
 import { AsyncStorage } from 'react-native';
 import { getAuth, updatePassword } from "firebase/auth";
 import Loading from './Loading';
@@ -98,11 +98,13 @@ const Setting = (props) => {
     let userDetails;
     AsyncStorage.getItem('user').then(async (user) => {
       userDetails = JSON.parse(user);
-      console.log('users bitchessss', JSON.parse(user).email);
-      const querySnapshot = await getDocs(collection(db, "users"), { email: userDetails.email });
+      // const querySnapshot = await getDocs(collection(db, "users"), { email: userDetails.email });
+      const usersRef = collection(db, 'users');
+      let userDetails = await query(usersRef, where('email', '==', userDetails.email));
+      const querySnapshot = await getDocs(userDetails);
       querySnapshot.forEach((doc) => {
         let obj = doc.data();
-        console.log('obj', obj);
+        console.log('obj2', obj);
         obj['id'] = doc.id;
         setUsername(obj.username);
         if (obj?.description)
@@ -156,48 +158,50 @@ const Setting = (props) => {
               <Text style={[styles.whiteText]}>{description}</Text>
             </View>
           </View>
-          <View style={styles.contentBody}>
-            <Text style={styles.title}>Username</Text>
-            <View style={styles.inputContainer}>
-              <TextInput style={styles.input} placeholder="Anirudh" value={username} onChangeText={t => setUsername(t)} />
-              <Pressable style={styles.link} onPress={() => { }}>
-                <Text style={styles.linkText}>Edit</Text>
-              </Pressable>
+          <ScrollView>
+            <View style={styles.contentBody}>
+              <Text style={styles.title}>Username</Text>
+              <View style={styles.inputContainer}>
+                <TextInput style={styles.input} placeholder="Anirudh" value={username} onChangeText={t => setUsername(t)} />
+                <Pressable style={styles.link} onPress={() => { }}>
+                  <Text style={styles.linkText}>Edit</Text>
+                </Pressable>
+              </View>
+              <Text style={styles.title}>Password</Text>
+              <View style={styles.inputContainer}>
+                <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={t => setPassword(t)} />
+                <Pressable style={styles.link} onPress={() => { }}>
+                  <Text style={styles.linkText}>Edit</Text>
+                </Pressable>
+              </View>
+              <Text style={styles.title}>Description</Text>
+              <View style={styles.inputContainer}>
+                <TextInput style={styles.input} placeholder="Description" value={description} onChangeText={t => setDescription(t)} />
+                <Pressable style={styles.link} onPress={() => { }}>
+                  <Text style={styles.linkText}>Edit</Text>
+                </Pressable>
+              </View>
+              <Text style={styles.title}>Address</Text>
+              <View style={styles.inputContainer}>
+                <TextInput style={styles.input} placeholder="412 Summit Avenue" value={address} onChangeText={t => setAddress(t)} />
+                <Pressable style={styles.link} onPress={() => { }}>
+                  <Text style={styles.linkText}>Edit</Text>
+                </Pressable>
+              </View>
+              <Text style={styles.title}>Dictation</Text>
+              <View style={styles.inputContainer}>
+                <TextInput style={[styles.input, styles.boldText]} editable={false} placeholder="Rerecord Audio" />
+                <Pressable style={styles.link} onPress={() => recordAudio()}>
+                  <Text style={styles.linkText}>Rerecord</Text>
+                </Pressable>
+              </View>
+              <View style={styles.buttonContainer}>
+                <Pressable style={styles.button1} onPress={() => submitForm()}>
+                  <Text style={styles.buttonTextFinish}>Finish</Text>
+                </Pressable>
+              </View>
             </View>
-            <Text style={styles.title}>Password</Text>
-            <View style={styles.inputContainer}>
-              <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={t => setPassword(t)} />
-              <Pressable style={styles.link} onPress={() => { }}>
-                <Text style={styles.linkText}>Edit</Text>
-              </Pressable>
-            </View>
-            <Text style={styles.title}>Description</Text>
-            <View style={styles.inputContainer}>
-              <TextInput style={styles.input} placeholder="Description" value={description} onChangeText={t => setDescription(t)} />
-              <Pressable style={styles.link} onPress={() => { }}>
-                <Text style={styles.linkText}>Edit</Text>
-              </Pressable>
-            </View>
-            <Text style={styles.title}>Address</Text>
-            <View style={styles.inputContainer}>
-              <TextInput style={styles.input} placeholder="412 Summit Avenue" value={address} onChangeText={t => setAddress(t)} />
-              <Pressable style={styles.link} onPress={() => { }}>
-                <Text style={styles.linkText}>Edit</Text>
-              </Pressable>
-            </View>
-            <Text style={styles.title}>Dictation</Text>
-            <View style={styles.inputContainer}>
-              <TextInput style={[styles.input, styles.boldText]} editable={false} placeholder="Rerecord Audio" />
-              <Pressable style={styles.link} onPress={() => recordAudio()}>
-                <Text style={styles.linkText}>Rerecord</Text>
-              </Pressable>
-            </View>
-            <View style={styles.buttonContainer}>
-              <Pressable style={styles.button1} onPress={() => submitForm()}>
-                <Text style={styles.buttonTextFinish}>Finish</Text>
-              </Pressable>
-            </View>
-          </View>
+          </ScrollView>
         </View>
       </SafeAreaView>
     </>

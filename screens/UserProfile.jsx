@@ -20,7 +20,12 @@ const storage = getStorage();
 const UserProfile = (props) => {
   const AudioPlayer = useRef(new Audio.Sound());
   const [sound, setSound] = React.useState();
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState({
+    username: '',
+    email: '',
+    groups: [],
+    profile: '',
+  });
   const [userTemp, setUserTemp] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -52,6 +57,7 @@ const UserProfile = (props) => {
     querySnapshot.forEach(doc => {
       arr.push(doc.data());
     });
+    console.log('userDetails', arr, users);
     setUser(arr[0]);
   }
 
@@ -77,7 +83,8 @@ const UserProfile = (props) => {
     } catch (error) {
       console.log(error);
       if (error.code.includes('does not exist')) {
-        alert('Account does not exist');
+        alert('Recording does not exist');
+        setIsLoading(false);
       }
     }
   }
@@ -93,7 +100,8 @@ const UserProfile = (props) => {
       }).catch(error => {
         console.log(error);
         if (error.code == 'storage/object-not-found') {
-          alert('Account does not exist');
+          alert('Recording does not exist');
+          setIsLoading(false);
         }
       });
       userTemp(JSON.parse(user));
@@ -116,7 +124,7 @@ const UserProfile = (props) => {
             <Image style={styles.backIcon} source={leftChevron} />
 
           </Pressable>
-          <Text style={[styles.header, styles.textWhite]}>{user.username}</Text>
+          <Text style={[styles.header, styles.textWhite]}>{user?.username}</Text>
           <Pressable onPress={() => props.navigation.navigate('Setting')}>
             <Image style={styles.settingicon} source={Setting} />
           </Pressable>
@@ -130,8 +138,9 @@ const UserProfile = (props) => {
         </Pressable>
       </View>
       <View style={styles.scrollParent}>
+        { console.log('user loop', user) }
         {
-          user.groups && user.groups.map((item, index) => {
+          user?.groups && user?.groups.map((item, index) => {
             let details;
             getItemDetails(item).then(res => {
               console.log('res', res);
