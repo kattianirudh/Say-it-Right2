@@ -30,6 +30,7 @@ import UserProfile from '../screens/UserProfile';
 import GroupList from '../screens/GroupList';
 import Loading from '../screens/Loading';
 import Setting from '../screens/Setting';
+import ForgotPassword from '../screens/ForgotPassword';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
@@ -43,6 +44,11 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
         <Stack.Screen
           name="Loading"
           component={Loading}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ForgotPassword"
+          component={ForgotPassword}
           options={{ headerShown: false }}
         />
         <Stack.Screen

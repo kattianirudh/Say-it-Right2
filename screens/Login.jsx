@@ -65,6 +65,11 @@ const Login = (props) => {
               <Pressable onPress={() => props.navigation.navigate('Register')}>
                 <Text style={[styles.text, styles.BoldAccountText]}> Register</Text>
               </Pressable>
+            </Text><Text style={styles.AccountText}>
+              Forgot Password?
+              <Pressable onPress={() => props.navigation.navigate('ForgotPassword')}>
+                <Text style={[styles.text, styles.BoldAccountText]}> Change</Text>
+              </Pressable>
             </Text>
           </View>
         </View>
