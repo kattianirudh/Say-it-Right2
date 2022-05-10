@@ -50,7 +50,7 @@ const Setting = (props) => {
       if (playerStatus.isLoaded) {
         if (playerStatus.isPlaying === false) {
           AudioPlayer.current.playAsync();
-          SetIsPLaying(true);
+          // SetIsPLaying(true);
         }
       }
     } catch (error) { console.log(error); }

@@ -168,7 +168,7 @@ const GroupList = (props) => {
                     </View>
                 </ScrollView>
                 {
-                    user.profile != 'User' &&
+                    user.profile == 'Admin' &&
                     <View style={styles.floatingButtonContainer}>
                         <Pressable style={styles.floatingButton} onPress={() => props.navigation.navigate('AddMembers', { item: props.route.params.item })}>
                             <Text style={styles.plusButton}>+</Text>
@@ -295,8 +295,8 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     floatingButtonContainer: {
-        marginTop: 40,
-        bottom: 20,
+    marginTop: 40,
+    bottom: 20,
         right: 20,
         display: 'flex',
         flexDirection: 'row',
