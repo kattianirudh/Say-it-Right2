@@ -1,9 +1,14 @@
 import { View, Text, TextInput, StyleSheet, Button, Pressable, Image, KeyboardAvoidingView } from 'react-native'
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import { Picker } from '@react-native-picker/picker';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { AsyncStorage } from 'react-native';
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
+import app from '../firebase';
 
+const db = getFirestore(app);
+const storage = getStorage();
 
 const Login = (props) => {
   const [email, setEmail] = useState('')
@@ -21,21 +26,28 @@ const Login = (props) => {
 
   const handleLogin = () => {
     signInWithEmailAndPassword(auth, email, password, profile)
-    .then((userCredentials) => {
-      const user = userCredentials.user;
-      // Save the credentials in async storage
-      AsyncStorage.setItem('user', JSON.stringify(user));
-      props.navigation.navigate('Home')
-    })
-    .catch((error) => {
-      alert(error.message)
-    })
+      .then(async (userCredentials) => {
+        const user = userCredentials.user;
+        AsyncStorage.setItem('user', JSON.stringify(user));
+        const groupsRef = collection(db, 'users');
+        let groupDetails = await query(groupsRef, where('email', '==', email));
+        const querySnapshot = await getDocs(groupDetails);
+        if (querySnapshot.empty) {
+          alert('User not found. Please create profile.');
+          props.navigation.navigate('Register');
+        } else {
+          props.navigation.navigate('Home');
+        }
+      })
+      .catch((error) => {
+        alert(error.message)
+      })
   }
-      
+
   return (
-      <View style={styles.body}>
-          <Text style={styles.logintitle}>Login</Text>
-          {/* <Picker style={styles.PickerPlaceholder}
+    <View style={styles.body}>
+      <Text style={styles.logintitle}>Login</Text>
+      {/* <Picker style={styles.PickerPlaceholder}
             selectedValue={profile}
             onValueChange={currentProfile => setProfile(currentProfile)}>
             <Picker.Item label="user" value="User" />
@@ -44,37 +56,37 @@ const Login = (props) => {
           <Text>
           Selected: {profile}
         </Text> */}
-          <TextInput style={styles.InputPlaceholder}
-            placeholder="Email"
-            value={email}
-            onChangeText={(text) => setEmail(text)}
+      <TextInput style={styles.InputPlaceholder}
+        placeholder="Email"
+        value={email}
+        onChangeText={(text) => setEmail(text)}
 
-          />
-          <TextInput style={styles.InputPlaceholder}
-            secureTextEntry={true}
-            placeholder="Password"
-            value={password}
-            onChangeText={(text) => setPassword(text)}
-          />
-          <View style={styles.buttonContainer}>
-            <Pressable style={styles.button} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Login</Text>
-            </Pressable>
-            <Text style={styles.AccountText}>
-              Don't have an account?
-              <Pressable onPress={() => props.navigation.navigate('Register')}>
-                <Text style={[styles.text, styles.BoldAccountText]}> Register</Text>
-              </Pressable>
-            </Text><Text style={styles.AccountText}>
-              Forgot Password?
-              <Pressable onPress={() => props.navigation.navigate('ForgotPassword')}>
-                <Text style={[styles.text, styles.BoldAccountText]}> Change</Text>
-              </Pressable>
-            </Text>
-          </View>
-        </View>
+      />
+      <TextInput style={styles.InputPlaceholder}
+        secureTextEntry={true}
+        placeholder="Password"
+        value={password}
+        onChangeText={(text) => setPassword(text)}
+      />
+      <View style={styles.buttonContainer}>
+        <Pressable style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Login</Text>
+        </Pressable>
+        <Text style={styles.AccountText}>
+          Don't have an account?
+          <Pressable onPress={() => props.navigation.navigate('Register')}>
+            <Text style={[styles.text, styles.BoldAccountText]}> Register</Text>
+          </Pressable>
+        </Text><Text style={styles.AccountText}>
+          Forgot Password?
+          <Pressable onPress={() => props.navigation.navigate('ForgotPassword')}>
+            <Text style={[styles.text, styles.BoldAccountText]}> Change</Text>
+          </Pressable>
+        </Text>
+      </View>
+    </View>
     // </KeyboardAvoidingView>
-  
+
   )
 }
 
@@ -112,22 +124,22 @@ const styles = StyleSheet.create({
   //     textAlign: 'center', 
   //     marginTop: 30,
   // },
-    button: {
-      width: '100%',
-      backgroundColor: '#000000',
-      borderRadius: 10,
-      marginTop: 50,
-      height: 50,
-      alignSelf: 'center',
-      justifyContent: 'center',
-      alignItems: 'center',
-      display: 'flex',
-      
+  button: {
+    width: '100%',
+    backgroundColor: '#000000',
+    borderRadius: 10,
+    marginTop: 50,
+    height: 50,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    display: 'flex',
+
   },
   buttonText: {
-      color: '#ffffff',
-      fontSize: 20,
-      fontWeight: 'bold',
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   InputPlaceholder: {
     borderWidth: 1,

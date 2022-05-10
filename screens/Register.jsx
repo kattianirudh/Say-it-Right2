@@ -60,7 +60,7 @@ const Register = (props) => {
         />
         <TextInput style={styles.InputPlaceholder}
           placeholder="Username"
-          value={email}
+          value={username}
           onChangeText={(text) => setUsername(text)}
         />
         <TextInput style={styles.InputPlaceholder}
